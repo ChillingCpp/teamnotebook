@@ -61,5 +61,5 @@ Test cũng sửa theo: bật lại assert `trie` counts, tăng assert φ (xem `t
 ## Quy ước nội dung
 
 - **Không `do-while`** (chỉ `for`/`while`); **không Fenwick/BIT** — mọi bài BIT cũ đã chuyển sang segment tree; **Dijkstra** bỏ khỏi notebook (chỉ còn tên trong danh sách).
-- Công thức toán viết bằng `$...$` / `$$...$$`; identifier/biểu thức code giữ trong `` `...` ``.
+- Công thức toán viết bằng `$...$` / `$$...$$`; identifier/biểu thức code giữ trong `` `...` ``. Ký tự ngay trước `$` mở phải là space / đầu dòng / `(` thì mới render (vd đúng: `~ $10^9$`, `$O(1)$ / $O(n)$`; sai: `~$10^9$`, `$O(1)$/$O(n)$` — sẽ hiện thô); block `$$..$$` cần dòng trống trước và sau (rule đã probe qua GitHub Markdown API).
 - Snippet tối giản, trừu tượng hóa tối thiểu, có chú thích observation trọng yếu — copy-and-go khi thi.

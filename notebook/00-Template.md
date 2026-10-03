@@ -5,7 +5,7 @@
 **Mục đích:** Khởi động nhanh mỗi bài: I/O nhanh, macro và typedef dùng chung cho mọi snippet trong TRD. Dán nguyên khối này vào đầu file bài giải.
 
 **Ý tưởng / Observation:**
-- `cin.tie(0)->sync_with_stdio(0)` rồi dùng `cin/cout` là đủ nhanh cho hầu hết bài (dưới ~$2 \times 10^6$ số).
+- `cin.tie(0)->sync_with_stdio(0)` rồi dùng `cin/cout` là đủ nhanh cho hầu hết bài (dưới ~ $2 \times 10^6$ số).
 - `cin.exceptions(cin.failbit)` → fail ngay khi đọc thiếu input/cạn EOF, chuyển RE thành lỗi rõ ràng thay vì WA im lặng. Bỏ dòng này nếu không chắc input đọc hết (vd. interactive).
 - Muốn debug có kiểm soát: chỉ định nghĩa `LOCAL` khi biên dịch local.
 

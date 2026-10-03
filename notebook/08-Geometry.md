@@ -10,7 +10,7 @@
 - `perp()` = xoay +90°, `unit()` = vector đơn vị — dựng đường trung tuyến, pháp tuyến.
 
 **Điều kiện sử dụng:**
-- `T = double` (phép chia/nhân có `dist()`), `T = long long` (chỉ dùng cross/dot int — cẩn thận tràn với tọa độ $\le 10^9$ → cross ~$10^{18}$ OK borderline).
+- `T = double` (phép chia/nhân có `dist()`), `T = long long` (chỉ dùng cross/dot int — cẩn thận tràn với tọa độ $\le 10^9$ → cross ~ $10^{18}$ OK borderline).
 
 **Độ phức tạp:**
 - Time: $O(1)$ mỗi phép
@@ -260,7 +260,7 @@ D polygonArea(const vector<Pd>& v) {  // diện tích tuyệt đối, n ≥ 3
 
 ## Point in polygon
 
-**Mục đích:** Kiểm tra điểm có nằm TRONG đa giác (ray casting) hoặc đa giác LỚI (cross test) — $O(n)$/$O(\log n)$.
+**Mục đích:** Kiểm tra điểm có nằm TRONG đa giác (ray casting) hoặc đa giác LỚI (cross test) — $O(n)$ / $O(\log n)$.
 
 **Ý tưởng / Observation:**
 - **Bất kỳ:** bắn tia ngang, đếm cắt đoạn → lẻ = trong (xử lý điểm trên biên trả 0/1 tùy bài).
@@ -314,7 +314,7 @@ bool inHull(const vector<Pd>& h, Pd p) {  // h ccw từ hull()
 
 **Ý tưởng / Observation:**
 - Sort theo x, giữ dãy đã xét trong `set` theo y; với mỗi điểm mới chỉ check $\le 6$ điểm trong ô $d \times 2d$.
-- Nhận ra: "$n \le 10^5$, tìm cặp distance nhỏ nhất" → sweep; "cặp > 0" → union-find với khoảng cách tăng dần.
+- Nhận ra: "khi $n \le 10^5$, tìm cặp distance nhỏ nhất" → sweep; "cặp > 0" → union-find với khoảng cách tăng dần.
 
 **Điều kiện sử dụng:**
 - `D = double`; tọa độ distinct (nếu trùng → distance 0 ngay). Set theo `(y, x)` pair.
@@ -480,7 +480,7 @@ array<int, 2> lineHull(Pd a, Pd b, const vector<Pd>& poly) {
 - Point array + node index (không pointer) — build 1 lần, query nhiều. Nên shuffle input trước khi build (tránh worst-case).
 
 **Độ phức tạp:**
-- Time: $O(\log n)$ kỳ vọng mỗi query (thực tế ~$\sqrt{n}$), tệ nhất $O(n)$
+- Time: $O(\log n)$ kỳ vọng mỗi query (thực tế ~ $\sqrt{n}$), tệ nhất $O(n)$
 - Space: $O(n)$
 
 **Dependency:** template.cpp, point

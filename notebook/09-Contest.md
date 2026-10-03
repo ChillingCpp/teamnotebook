@@ -115,7 +115,7 @@ Interactive template:
 ```
 Ad-hoc workflow:
     1. Đọc kỹ, viết 2-3 case tay
-    2. Brute $O(2^n)$/$O(n!)$ cho n nhỏ → tìm pattern
+    2. Brute $O(2^n)$ / $O(n!)$ cho n nhỏ → tìm pattern
     3. Suy luận invariant / bất biến / điều kiện đủ
     4. Tính edge cases: n = 0, 1, tất cả bằng nhau, đã sorted
 

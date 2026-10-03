@@ -9,7 +9,7 @@
 - Hệ 2 ẩn: chia thức con nếu $ad - bc = 0$ → song song hoặc trùng.
 
 **Điều kiện sử dụng:**
-- Dùng double khi cần nghiệm thực; $b^2-4ac$ tràn `ll` nếu hệ số ~$10^9$ → tính bằng `long double` hoặc kiểm tra cận.
+- Dùng double khi cần nghiệm thực; $b^2-4ac$ tràn `ll` nếu hệ số ~ $10^9$ → tính bằng `long double` hoặc kiểm tra cận.
 
 **Độ phức tạp:**
 - Time: $O(1)$
@@ -52,7 +52,7 @@ $$\text{nghiệm bội } r \ (m \text{ lần}): \quad \text{thêm hạng } (d_1n
 - Sum-to-product khi cần biến đổi tổng trig về tích (hoặc ngược lại) để so sánh đơn điệu.
 
 **Điều kiện sử dụng:**
-- `atan2(y, x)` trả về $(-\pi, \pi]$; so sánh góc nhớ xử lý cắt quanh $0$/$2\pi$.
+- `atan2(y, x)` trả về $(-\pi, \pi]$; so sánh góc nhớ xử lý cắt quanh $0$ / $2\pi$.
 
 **Độ phức tạp:**
 - Time: $O(1)$
@@ -63,6 +63,7 @@ $$\sin(v+w) = \sin v \cos w + \cos v \sin w, \qquad \cos(v+w) = \cos v \cos w - 
 $$\tan(v+w) = \frac{\tan v + \tan w}{1 - \tan v \tan w}$$
 $$\sin v + \sin w = 2\sin\tfrac{v+w}{2}\cos\tfrac{v-w}{2}, \qquad \cos v + \cos w = 2\cos\tfrac{v+w}{2}\cos\tfrac{v-w}{2}$$
 $$a\cos x + b\sin x = r\cos(x - \varphi), \quad r = \sqrt{a^2+b^2}, \quad \varphi = \operatorname{atan2}(b, a)$$
+
 xoay điểm $p$ quay gốc, góc $\theta$ (độ): $\left(x\cos\theta - y\sin\theta,\ x\sin\theta + y\cos\theta\right)$
 
 ## Tổng, chuỗi & Taylor
@@ -105,7 +106,7 @@ $$\sin x = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \dots, \qquad \cos x = 1 - \fra
 - Công thức $E[X] = \sum k \cdot P(X=k)$ với X rời rạc; liên tục thay Sum → Integral.
 
 **Độ phức tạp:**
-- Time: $O(\text{số hạng tính tay})$ — thường $O(1)$/$O(n)$.
+- Time: $O(\text{số hạng tính tay})$ — thường $O(1)$ / $O(n)$.
 
 **Code:** — (công thức tra cứu)
 
@@ -149,7 +150,7 @@ $$\text{thời gian hấp thụ: } \quad t_i = 1 + \sum_{k \in G} p_{ik}t_k$$
 - `vector<T> operator*` để áp transition vào state vector một bước.
 
 **Điều kiện sử dụng:**
-- $N \lesssim 100$ với $\log n \le 60$ thì ~$10^7$ phép nhân (nửa giây). `T` = ll → cẩn thận tràn khi tổng hạng mục ~$10^{18}$.
+- $N \lesssim 100$ với $\log n \le 60$ thì ~ $10^7$ phép nhân (nửa giây). `T` = ll → cẩn thận tràn khi tổng hạng mục ~ $10^{18}$.
 
 **Độ phức tạp:**
 - Time: $O(N^3 \log p)$ cho mũ, $O(N^3)$ cho nhân.
