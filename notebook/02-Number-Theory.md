@@ -4,13 +4,10 @@
 
 **Mục đích:** Phép toán modulo: lũy thừa, nghịch đảo, cộng/trừ/nhân chia an toàn.
 
-**Ý tưởng / Observation:**
-- $a^{p-1} \equiv 1 \pmod{p}$ (Fermat, p nguyên tố) → nghịch đảo = $a^{p-2} \bmod p$ — nhanh khi mod nguyên tố.
-- Mod KHÔNG nguyên tố → Euclid mở rộng (mục euclid).
-- Tràn khi `(a*b) % mod` với $a,b < mod \le 10^{18}$ → dùng `__int128` hoặc modmul mục riêng.
-
 **Điều kiện sử dụng:**
 - `mod` phải là hằng số toàn cục; với mod nguyên tố dùng `modpow`.
+- Mod nguyên tố: nghịch đảo = $a^{p-2} \bmod p$ (Fermat). Mod không nguyên tố → Euclid mở rộng (mục euclid).
+- Tràn khi `(a*b) % mod` với $a,b < mod \le 10^{18}$ → dùng `__int128` hoặc modmul mục riêng.
 
 **Độ phức tạp:**
 - Time: $O(\log e)$ cho lũy thừa, $O(\log n)$ cho nghịch đảo.
@@ -20,6 +17,7 @@
 
 ```cpp
 // id: modpow
+// Fermat: a^(p-1) ≡ 1 (mod p) → nghịch đảo = a^(p-2) mod p (p nguyên tố).
 const ll MOD = 1000000007;
 ll modpow(ll b, ll e, ll mod = MOD) {
     ll a = 1;
@@ -36,12 +34,9 @@ ll modinv(ll a, ll mod = MOD) { return modpow(a, mod - 2, mod); }  // mod nguyê
 
 **Mục đích:** Tìm `x, y` sao cho $ax + by = \gcd(a, b)$; từ đó giải Diophantine, nghịch đảo modulo tổng quát.
 
-**Ý tưởng / Observation:**
-- Nếu `gcd(a,b) == 1` thì `x` là nghịch đảo của `a` mod `b` (đổi vai trò a,b để lấy nghịch đảo của a mod m).
-- Hệ $ax + by = c$ có nghiệm khi $\gcd(a,b) \mid c$; tất cả nghiệm: `x += k·b/g`, `y -= k·a/g`.
-
 **Điều kiện sử dụng:**
 - $a, b \ge 0$; kết quả `x, y` có thể âm → chuẩn hóa `(x % m + m) % m`.
+- `gcd(a,b) == 1` → `x` là nghịch đảo của `a` mod `b`. Hệ $ax + by = c$ có nghiệm khi $\gcd(a,b) \mid c$; nghiệm tổng quát: `x += k·b/g`, `y -= k·a/g`.
 
 **Độ phức tạp:**
 - Time: $O(\log min(a,b))$
@@ -64,12 +59,9 @@ ll euclid(ll a, ll b, ll& x, ll& y) {
 
 **Mục đích:** Giải hệ đồng dư $x \equiv a \pmod{m}$, $x \equiv b \pmod{n}$ → $x \bmod \operatorname{lcm}(m,n)$.
 
-**Ý tưởng / Observation:**
-- Điều kiện tồn tại: `(a - b) % gcd(m,n) == 0`.
-- Gộp dần nhiều đồng dư → mỗi bước kết quả mới mod `lcm` tích lũy.
-
 **Điều kiện sử dụng:**
 - `m*n < 2^62` (tránh tràn); `|a| < m`, `|b| < n` để kết quả nằm `[0, lcm)`.
+- Tồn tại nghiệm khi `(a - b) % gcd(m,n) == 0`. Gộp dần nhiều đồng dư: mỗi bước kết quả mod `lcm` tích lũy.
 
 **Độ phức tạp:**
 - Time: $O(\log max(m,n))$
@@ -93,13 +85,9 @@ ll crt(ll a, ll m, ll b, ll n) {
 
 **Mục đích:** Sinh toàn bộ nguyên tố < LIM, đánh dấu, phân tích thừa số bằng SPF.
 
-**Ý tưởng / Observation:**
-- Eratosthenes bitset: đủ cho $LIM \le 10^7$ trong < 0.1s. $10^6$ nguyên tố < $10^7$.
-- SPF (smallest prime factor) array: phân tích nhanh mọi số ≤ LIM: `while (n % spf[x] == 0) ...` — ưu tiên khi cần `phi`, `mu`, đếm ước.
-- Bài cần phân tích 1 số lớn $\le 10^{18}$ → Pollard rho (mục Factor).
-
 **Điều kiện sử dụng:**
 - Mảng `int[LIM]` ~ $4 \cdot LIM$ byte; SPF dùng $LIM \le 2 \cdot 10^7$.
+- SPF (smallest prime factor) phân tích nhanh mọi số ≤ LIM — ưu tiên khi cần `phi`, `mu`, đếm ước. Phân tích 1 số lớn $\le 10^{18}$ → Pollard rho (mục factor).
 
 **Độ phức tạp:**
 - Time: $O(LIM \log \log LIM)$
@@ -109,6 +97,7 @@ ll crt(ll a, ll m, ll b, ll n) {
 
 ```cpp
 // id: sieve
+// Eratosthenes bitset: đủ cho LIM ≤ 1e7 trong < 0.1s.
 const int LIM = 1000000;
 vi primes;
 bitset<LIM + 1> isPrime;
@@ -129,13 +118,9 @@ void eratosthenes() {
 
 **Mục đích:** Liệt kê / kiểm tra nguyên tố trong đoạn $[L, R]$ khi $R$ quá lớn cho mảng full nhưng độ dài đoạn $R - L$ vẫn nhỏ.
 
-**Ý tưởng / Observation:**
-- Sàng nhỏ $\le \sqrt{R}$ trước (mảng `vector<bool>` cỡ $\sqrt{R}$), rồi với mỗi nguyên tố $p \le \sqrt{R}$ đánh dấu bội của $p$ trong $[L, R]$, bắt đầu từ $\max(p^2,\ \lceil L/p \rceil \cdot p)$ — không đánh dấu chính $p$ khi $p < L$.
-- Không cần lưu mảng tới $R$: chỉ $R - L + 1$ bool → với $R \le 10^{12}$ chỉ tốn $O(R - L)$.
-- Kết hợp với Miller–Rabin để chắc chắn (hoặc brute $\sqrt{x}$ với đoạn ngắn).
-
 **Điều kiện sử dụng:**
 - $R - L + 1 \le \sim 2 \cdot 10^7$ (mảng bool đoạn); $0 \le L \le R$. Chú ý $0, 1$ không phải nguyên tố.
+- Chỉ cần mảng $R - L + 1$ bool (không lưu tới $R$) → $R \le 10^{12}$ với đoạn ngắn. Kết hợp Miller–Rabin để chắc chắn.
 
 **Độ phức tạp:**
 - Time: $O\big((R - L) \log \log R + \sqrt{R} \log \log \sqrt{R}\big)$
@@ -145,7 +130,8 @@ void eratosthenes() {
 
 ```cpp
 // id: segsieve
-// Nguyên tố trong [L, R]: is[i] = true ↔ (L + i) là nguyên tố
+// Nguyên tố trong [L, R]: is[i] = true ↔ (L + i) là nguyên tố.
+// Sàng nhỏ ≤ √R trước, rồi với mỗi p ≤ √R đánh dấu bội của p trong [L, R] từ max(p^2, ⌈L/p⌉·p).
 vector<bool> segSieve(ll L, ll R) {
     int len = (int)(R - L + 1);
     vector<bool> is(len, true);
@@ -173,13 +159,9 @@ vector<bool> segSieve(ll L, ll R) {
 
 **Mục đích:** Kiểm tra nguyên tố xác định cho số $\le 7 \cdot 10^{18}$.
 
-**Ý tưởng / Observation:**
-- Viết $n - 1 = d \cdot 2^s$; với mỗi cơ sở `a`: kiểm tra $a^d \equiv 1$ hoặc $a^{d \cdot 2^r} \equiv -1$ cho $r < s$.
-- Bộ cơ sở `{2, 325, 9375, 28178, 450775, 9780504, 1795265022}` đủ cho mọi `n < 2^64`.
-- Sàng trước: `n % 6 % 4 != 1` loại nhanh (trừ 2,3).
-
 **Điều kiện sử dụng:**
 - Cần `modmul` an toàn (n có thể > 2^32) — dùng modmul mục riêng.
+- Bộ cơ sở `{2, 325, 9375, 28178, 450775, 9780504, 1795265022}` đủ cho mọi `n < 2^64`.
 
 **Độ phức tạp:**
 - Time: $O(7 \cdot \log^3 n)$ xấp xỉ.
@@ -189,6 +171,7 @@ vector<bool> segSieve(ll L, ll R) {
 
 ```cpp
 // id: millerrabin
+// n - 1 = d·2^s; với mỗi cơ sở a: kiểm tra a^d ≡ 1 hoặc a^(d·2^r) ≡ -1 (r < s).
 bool isPrime(ull n) {
     if (n < 2 || n % 6 % 4 != 1) return (n | 1) == 3;
     ull A[] = {2, 325, 9375, 28178, 450775, 9780504, 1795265022};
@@ -207,12 +190,9 @@ bool isPrime(ull n) {
 
 **Mục đích:** `a*b % c` và `b^e % c` với $a, b, c \le 7.2 \cdot 10^{18}$ — dùng cho Miller–Rabin, Pollard rho, modpow mod lớn.
 
-**Ý tưởng / Observation:**
-- Dùng long double ước lượng thương `1.L/c * a * b` rồi trừ — trick chuẩn, $O(1)$.
-- `modpow` gọi `modmul` thay `*` khi mod > 2^32.
-
 **Điều kiện sử dụng:**
 - $c \ge 1$; long double đủ độ chính xác cho 64-bit trên x86 (80-bit).
+- `modpow` gọi `modmul` thay `*` khi mod > 2^32.
 
 **Độ phức tạp:**
 - Time: $O(1)$ modmul, $O(\log e)$ modpow.
@@ -222,6 +202,7 @@ bool isPrime(ull n) {
 
 ```cpp
 // id: modmul
+// long double ước lượng thương 1.L/c * a * b rồi trừ — O(1).
 typedef unsigned long long ull;
 ull modmul(ull a, ull b, ull M) {
     ll ret = a * b - M * ull(1.L / M * a * b);
@@ -239,13 +220,9 @@ ull modpow(ull b, ull e, ull mod) {
 
 **Mục đích:** Phân tích n ($\le 2^{64}$) thành thừa số nguyên tố, không cần n nguyên tố nhỏ.
 
-**Ý tưởng / Observation:**
-- Hàm $f(x) = x^2 + i \bmod n$, tìm $\gcd(|x-y|, n)$; trung bình $O(n^{1/4})$.
-- Gọi đệ quy tới khi nào `isPrime` → tập thừa số (thứ tự tùy ý, có lặp).
-- Trước khi rho: chia thử 2,3,5.. rồi check `isPrime` để rút ngắn.
-
 **Điều kiện sử dụng:**
 - Kết quả là DANH SÁCH (có thể lặp) → `sort` rồi gộp nếu cần dạng $p^k$.
+- Trước khi rho: chia thử 2,3,5.. rồi check `isPrime` để rút ngắn.
 
 **Độ phức tạp:**
 - Time: $O(n^{1/4})$ mỗi bước (kỳ vọng).
@@ -255,6 +232,7 @@ ull modpow(ull b, ull e, ull mod) {
 
 ```cpp
 // id: factor
+// f(x) = x^2 + i mod n, tìm gcd(|x-y|, n); trung bình O(n^(1/4)).
 ull pollard(ull n) {
     ull x = 0, y = 0, t = 30, prd = 2, i = 1, q;
     auto f = [&](ull v) { return modmul(v, v, n) + i; };
@@ -279,12 +257,9 @@ vector<ull> factor(ull n) {
 
 **Mục đích:** Tìm `x` sao cho $x^2 \equiv a \pmod{p}$, p nguyên tố lẻ — modular square root.
 
-**Ý tưởng / Observation:**
-- Nếu `p % 4 == 3` → nghiệm ngay $a^{(p+1)/4}$.
-- Trường hợp tổng quát: tách $p - 1 = s \cdot 2^r$, tìm căn gốc phụ `n` (không phải QR), lặp nâng bậc 2.
-
 **Điều kiện sử dụng:**
 - `p` nguyên tố lẻ; nếu `legendre(a,p) != 1` → không có nghiệm (assert).
+- `p % 4 == 3` → nghiệm ngay $a^{(p+1)/4}$.
 
 **Độ phức tạp:**
 - Time: $O(\log^2 p)$ tệ nhất, $O(\log p)$ hầu hết.
@@ -294,6 +269,7 @@ vector<ull> factor(ull n) {
 
 ```cpp
 // id: modsqrt
+// trường hợp tổng quát: tách p - 1 = s·2^r, tìm căn gốc phụ n (không phải QR), lặp nâng bậc 2.
 ll modsqrt(ll a, ll p) {
     a %= p;
     if (a < 0) a += p;
@@ -323,12 +299,9 @@ ll modsqrt(ll a, ll p) {
 
 **Mục đích:** Tìm `x` nhỏ nhất `> 0` với $a^x \equiv b \pmod{m}$; hoặc thứ tự của `a` (gọi `modLog(a,1,m)`).
 
-**Ý tưởng / Observation:**
-- Baby-step giant-step: $x = i \cdot n + j$, precompute $a^j$ vào hash, lặp $a^{i \cdot n}$ tra.
-- Không tồn tại → kiểm tra `gcd(m, a^{n}) == gcd(m, b)` trước khi kết luận -1.
-
 **Điều kiện sử dụng:**
 - `m` bất kỳ (không cần nguyên tố); `unordered_map` cache bước con.
+- Không tồn tại → kiểm tra `gcd(m, a^{n}) == gcd(m, b)` trước khi kết luận -1.
 
 **Độ phức tạp:**
 - Time: $O(√m)$
@@ -338,6 +311,7 @@ ll modsqrt(ll a, ll p) {
 
 ```cpp
 // id: modlog
+// baby-step giant-step: x = i·n + j, precompute a^j vào hash, lặp a^(i·n) tra.
 ll modLog(ll a, ll b, ll m) {
     ll n = (ll)sqrt(m) + 1, e = 1, f = 1, j = 1;
     unordered_map<ll, ll> A;
@@ -353,14 +327,9 @@ ll modLog(ll a, ll b, ll m) {
 
 **Mục đích:** $\varphi(n)$ = số ước nguyên tố với n; $\mu(n)$ = Mobius — dùng cho Euler theorem, đếm theo ước, Mobius inversion.
 
-**Ý tưởng / Observation:**
-- $\varphi(n) = n \prod_{p \mid n} \left(1 - \frac{1}{p}\right)$; $\varphi(p^k) = (p-1)p^{k-1}$; $\sum_{d \mid n} \varphi(d) = n$.
-- Euler: $a^{\varphi(n)} \equiv 1$ khi $\gcd(a,n) = 1$ → lũy thừa modulo KHÔNG nguyên tố.
-- $\mu(n) = 0$ nếu n có bình phương thừa; $\sum_{d \mid n} \mu(d) = [n=1]$ — lọc Mobius: $g(n) = \sum_{d \mid n} f(d)$ → $f(n) = \sum \mu(d) g(n/d)$.
-- Sàng $O(LIM)$ tính đồng thời φ và μ cho mọi n.
-
 **Điều kiện sử dụng:**
 - Sàng mảng $O(LIM)$; công thức Π theo phân tích thừa số (dùng spf).
+- Euler: $a^{\varphi(n)} \equiv 1$ khi $\gcd(a,n) = 1$ → lũy thừa modulo KHÔNG nguyên tố. Lọc Mobius: $g(n) = \sum_{d \mid n} f(d)$ → $f(n) = \sum \mu(d) g(n/d)$.
 
 **Độ phức tạp:**
 - Time: $O(LIM \log \log LIM)$ sàng; $O(\log n)$ mỗi số.
@@ -370,6 +339,7 @@ ll modLog(ll a, ll b, ll m) {
 
 ```cpp
 // id: phi
+// φ(n) = n Π (1 - 1/p); φ(p^k) = (p-1)p^(k-1); Σ_{d|n} φ(d) = n. μ(n) = 0 nếu n có bình phương thừa.
 const int PHI_LIM = 1000000;
 int phi[PHI_LIM + 1], mu[PHI_LIM + 1];
 vi phiPrimes;
@@ -401,10 +371,6 @@ void sievePhiMu() {
 
 **Mục đích:** Ước lượng, tính chất ước/chữ số để bound nhanh khi thi.
 
-**Ý tưởng / Observation:**
-- Số ước $d(n)$: ~100 khi $n < 5 \cdot 10^4$, ~500 khi $n < 10^7$, ~2000 khi $n < 10^{10}$ — check nhanh giới hạn DFS.
-- $\sum_{d \mid n} d = O(n \log \log n)$; số chữ số $n! \approx \log_{10}(n!)$ (Stirling) — $171!$ vượt `double`.
-
 **Điều kiện sử dụng:**
 - Chỉ để ước lượng/ bound, không dùng làm chính xác.
 
@@ -424,12 +390,9 @@ $$\text{Pythagorean: } a = k(m^2 - n^2),\ b = k \cdot 2mn,\ c = k(m^2 + n^2),\ m
 
 **Mục đích:** Tính $\sum_{i=0}^{n-1} (a \cdot i + b) / m$ (floor) — dạng xuất hiện khi đếm cặp, tích phân số nguyên.
 
-**Ý tưởng / Observation:**
-- Đệ quy biến đổi `(n,a,b,m)` → $(am+b)/m,\ m,\ \dots$ giống Euclid → $O(\log m)$.
-- `modsum` tổng modulo: $\sum (k \cdot i + c) \% m = k \cdot \operatorname{sumsq}(n) + c \cdot n - m \cdot \operatorname{divsum}(\dots)$.
-
 **Điều kiện sử dụng:**
 - Toàn unsigned/ll, `m > 0`; tổng có thể ~10^18 → dùng ull cẩn thận.
+- `modsum` tổng modulo: $\sum (k \cdot i + c) \% m = k \cdot \operatorname{sumsq}(n) + c \cdot n - m \cdot \operatorname{divsum}(\dots)$.
 
 **Độ phức tạp:**
 - Time: $O(\log m)$
@@ -439,6 +402,7 @@ $$\text{Pythagorean: } a = k(m^2 - n^2),\ b = k \cdot 2mn,\ c = k(m^2 + n^2),\ m
 
 ```cpp
 // id: floorsum
+// đệ quy biến đổi (n,a,b,m) giống Euclid → O(log m).
 typedef unsigned long long ull;
 ull sumsq(ull to) { return to / 2 * ((to - 1) | 1); }  // Σ_{i<to} i
 ull divsum(ull to, ull c, ull k, ull m) {               // Σ floor((k*i+c)/m), i<to

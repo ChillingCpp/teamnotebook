@@ -4,11 +4,6 @@
 
 **Mục đích:** Query tổng/max/min đoạn, update điểm — $O(\log n)$ mỗi thao tác, đủ cho hầu hết bài cần gộp kết hợp (sum/max/min/xor).
 
-**Ý tưởng / Observation:**
-- Iterative (bottom-up): `b += n, e += n` rồi đi lên — ngắn, không đệ quy, nhanh.
-- Đổi `T`, `f`, `unit` để chuyển mục đích (max → min/sum/xor). `unit` là phần tử trung lập.
-- Query `[b, e)` nửa mở; update ghi đè `val` (không cộng dồn).
-
 **Điều kiện sử dụng:**
 - `n` không cần là lũy thừa 2. Hàm gộp phải kết hợp (associative).
 
@@ -20,6 +15,7 @@
 
 ```cpp
 // id: segtree
+// iterative bottom-up: b += n, e += n rồi đi lên — không đệ quy. Đổi T, f, unit để chuyển mục đích. Query [b, e) nửa mở; update ghi đè val.
 struct SegTree {
     typedef ll T;
     static constexpr T unit = 0;
@@ -44,11 +40,6 @@ struct SegTree {
 ## Lazy segment tree
 
 **Mục đích:** Update đoạn (set/add) + query max (đổi được thành sum/min) trên khoảng — $O(\log n)$.
-
-**Ý tưởng / Observation:**
-- Mảng `4n` (không đệ quy con trỏ): node `p` có con `2p`, `2p+1`; lazy `set` (cờ `hs`) áp TRƯỚC `add` khi push — set xong mới add → `st += x`; chưa set → `ad[p] += x`.
-- Đổi mục đích: sửa `mx[p] = max(...)` → `mx[2p] + mx[2p+1]` cho sum, đổi `LZY_NINF` = `+INF` cho min.
-- Đơn vị trung lập của max là `LZY_NINF` (query rỗng trả `-INF`).
 
 **Điều kiện sử dụng:**
 - `LazySeg tr(v);` rồi `tr.add(L,R,x)` / `tr.set(L,R,x)` / `tr.query(L,R)` — nửa mở `[L, R)`. Ảnh hưởng chồng lên nhau OK (set áp lên add).
@@ -143,13 +134,9 @@ struct LazySeg {  // mảng 4n: set/add đoạn + query max
 
 **Mục đích:** Truy vấn sum rectangle `(x1..x2, y1..y2)` + update điểm trên N điểm rời rạc — KHÔNG cần lưới đầy.
 
-**Ý tưởng / Observation:**
-- Mỗi node x của segtree 1D chứa danh sách y của các điểm "treo" trên nó → sort + unique + build segtree 1D tại đó → **coordinate compression theo node**.
-- `prepare()` phải chạy TRƯỚC khi update/query (không thêm điểm sau khi build — nếu cần thêm, dùng dynamic/segtree 2D thật hoặc offline).
-- Điểm `(x,y)` đi vào $O(\log n)$ node; mỗi node chứa y riêng → space $O(n \log n)$.
-
 **Điều kiện sử dụng:**
-- Mọi điểm biết trước (offline). `x` index `[0, n)`; `y` là tọa độ tùy ý (nén trong node). Query yarı mở theo x, `[y1, y2]` closed theo y (đổi `get` nếu cần).
+- Mọi điểm biết trước (offline). `x` index `[0, n)`; `y` là tọa độ tùy ý (nén trong node). Query nửa mở theo x, `[y1, y2]` closed theo y (đổi `get` nếu cần).
+- `prepare()` phải chạy TRƯỚC khi update/query (không thêm điểm sau khi build).
 
 **Độ phức tạp:**
 - Time: $O(\log^2 n)$ mỗi update/query.
@@ -159,6 +146,7 @@ struct LazySeg {  // mảng 4n: set/add đoạn + query max
 
 ```cpp
 // id: seg2d
+// mỗi node x chứa danh sách y của các điểm treo trên nó → sort + unique + build segtree 1D (coordinate compression theo node). Điểm (x,y) đi vào O(log n) node → space O(n log n).
 struct Seg1D {  // segtree sum trên mảng y đã nén
     vi ys;
     vector<ll> t;
@@ -211,13 +199,9 @@ struct Seg2D {
 
 **Mục đích:** Giữ LẠI mọi phiên bản (version) của mảng: query trên version bất kỳ, query "trong đoạn [l,r] phần tử nhỏ nhất thế nào" (offline).
 
-**Ý tưởng / Observation:**
-- Mỗi update tạo $O(\log n)$ node mới, CHỈ sửa đường đi gốc → version t = gốc của version t−1 + nhánh mới.
-- Bài "query k-th nhỏ nhất trong đoạn [l,r]" → build version theo prefix, `kth(root[l-1], root[r], k)`.
-- Kết hợp với merge nếu cần (merge 2 segtree $O(\log n)$ mỗi node — "persistent + merge" cho DP cây).
-
 **Điều kiện sử dụng:**
 - 0-based, mảng giá trị index `[0, n)`. Chưa có point update "set" (cộng delta vẫn làm được qua node mới).
+- Bài "query k-th nhỏ nhất trong đoạn [l,r]" → build version theo prefix, `kth(root[l-1], root[r], k)`.
 
 **Độ phức tạp:**
 - Time: $O(\log n)$ mỗi update/query; kth cũng $O(\log n)$.
@@ -227,6 +211,7 @@ struct Seg2D {
 
 ```cpp
 // id: persistent
+// mỗi update tạo O(log n) node mới, CHỈ sửa đường đi gốc → version t = gốc của version t-1 + nhánh mới.
 struct PST {
     struct Node {
         int l = 0, r = 0;
@@ -272,12 +257,8 @@ struct PST {
 
 **Mục đích:** Sum rectangle bất kỳ trên lưới tĩnh — $O(1)$ query sau $O(RC)$ build.
 
-**Ý tưởng / Observation:**
-- $p[r+1][c+1] = a[r][c] + p[r][c+1] + p[r+1][c] - p[r][c]$; rectangle `[u,d) × [l,r)` = 4 điểm.
-- Bài có thêm update 1 điểm → chuyển sang segtree 2D (mục `seg2d`), KHÔNG dùng prefix static.
-
 **Điều kiện sử dụng:**
-- Grid tĩnh (không update). Dùng `ll` khi tổng $> 2 \cdot 10^9$.
+- Grid tĩnh (không update). Dùng `ll` khi tổng $> 2 \cdot 10^9$. Bài có update 1 điểm → chuyển sang segtree 2D (mục `seg2d`).
 
 **Độ phức tạp:**
 - Time: $O(RC)$ build, $O(1)$ query.
@@ -287,6 +268,7 @@ struct PST {
 
 ```cpp
 // id: prefix2d
+// p[r+1][c+1] = a[r][c] + p[r][c+1] + p[r+1][c] - p[r][c]; rectangle [u,d)×[l,r) = 4 điểm.
 struct SubMatrix {
     vector<vector<ll>> p;
     SubMatrix(vector<vector<ll>>& v) {
@@ -304,13 +286,8 @@ struct SubMatrix {
 
 **Mục đích:** Gộp tập, tìm thành phần — kiểm tra cùng tập / gộp thành phần $O(α(n))$.
 
-**Ý tưởng / Observation:**
-- Path compression + union by size → gần như $O(1)$; KHÔNG undo được (xem Rollback DSU).
-- Dùng khi cần "gộp 2 thứ lại và duy trì thông tin tập hợp" — MST Kruskal, offline query gộp, connected components.
-- Để lưu extra info theo thành phần: mảng `info[leader]`, cập nhật khi union.
-
 **Điều kiện sử dụng:**
-- 0-based; undo → dùng bản rollback.
+- 0-based; undo → dùng bản rollback. Dùng khi cần "gộp 2 thứ lại và duy trì thông tin tập hợp" — MST Kruskal, offline query gộp, connected components.
 
 **Độ phức tạp:**
 - Time: $O(α(n))$ gần $O(1)$ mỗi thao tác.
@@ -320,6 +297,7 @@ struct SubMatrix {
 
 ```cpp
 // id: dsu
+// path compression + union by size → gần như O(1). Lưu extra info theo thành phần: mảng info[leader], cập nhật khi union.
 struct DSU {
     vi e;
     DSU(int n) : e(n, -1) {}
@@ -341,10 +319,6 @@ struct DSU {
 
 **Mục đích:** DSU có undo — dùng khi duyệt backtrack/Phân hoạch / cần quay lại trạng thái trước (Mo trên cây, offline 2D).
 
-**Ý tưởng / Observation:**
-- Lưu `st = {(node, e[node cũ)}` trước mỗi lần gộp; `rollback(t)` trả về trạng thái tại thời điểm `time() == t`.
-- `time()` = kích thước stack → đánh dấu checkpoint.
-
 **Điều kiện sử dụng:**
 - KHÔNG có path compression (chỉ union by size) — nếu không không undo được. `find` $O(\log n)$.
 
@@ -356,6 +330,7 @@ struct DSU {
 
 ```cpp
 // id: dsurollback
+// lưu st = {(node, e[node] cũ)} trước mỗi lần gộp; rollback(t) trả về trạng thái tại time() == t. time() = kích thước stack = checkpoint.
 struct RollbackUF {
     vi e;
     vector<pii> st;
@@ -384,13 +359,9 @@ struct RollbackUF {
 
 **Mục đích:** Query min/max/idempotent trên mảng tĩnh $O(1)$ — thay segtree khi KHÔNG có update.
 
-**Ý tưởng / Observation:**
-- $jmp[k][j] = \min(jmp[k-1][j], jmp[k-1][j + 2^{k-1}])$; query `[a,b)` lấy 2 đoạn chồng lấp $2^{\lfloor \log(b-a) \rfloor}$ — idempotent (min) nên OK.
-- Log precompute: `dep = 31 - __builtin_clz(b - a)`.
-- GHÉP TRÊN CÂY (LCA bằng euler tour + RMQ) cũng dùng bản này.
-
 **Điều kiện sử dụng:**
 - Hàm gộp idempotent (min/max/gcd), KHÔNG dùng cho sum. `[a, b)` với `a < b` (assert).
+- GHÉP TRÊN CÂY (LCA bằng euler tour + RMQ) cũng dùng bản này.
 
 **Độ phức tạp:**
 - Time: $O(n \log n)$ build, $O(1)$ query.
@@ -400,6 +371,7 @@ struct RollbackUF {
 
 ```cpp
 // id: sparse
+// jmp[k][j] = min(jmp[k-1][j], jmp[k-1][j + 2^(k-1)]); query [a,b) lấy 2 đoạn chồng lấp 2^⌊log(b-a)⌋ — idempotent nên OK. dep = 31 - __builtin_clz(b - a).
 template <class T>
 struct RMQ {
     vector<vector<T>> jmp;
@@ -422,11 +394,6 @@ struct RMQ {
 
 **Mục đích:** Chuỗi/hàng đợi hỗ trợ split/merge theo vị trí: chèn, xóa, reverse đoạn, move đoạn, query tổng đoạn.
 
-**Ý tưởng / Observation:**
-- `split(t, k)` → `(0..k−1, k..)`; `merge(a, b)` theo priority `y` ngẫu nhiên → cân bằng kỳ vọng $O(\log n)$.
-- Đảo đoạn `[l,r)`: split 3 mảnh, đánh dấu lazy flip (cần thêm push nếu dùng nhiều) — hoặc move như ví dụ.
-- Augment: thêm `c` (size) để split theo index; thêm sum để query.
-
 **Điều kiện sử dụng:**
 - `rand()` đủ cho thi; đổi thành `mt19937` nếu WA lặp lại (rất hiếm).
 
@@ -438,6 +405,7 @@ struct RMQ {
 
 ```cpp
 // id: treap
+// split(t, k) → (0..k-1, k..); merge(a, b) theo priority y ngẫu nhiên → cân bằng kỳ vọng O(log n). Augment: thêm c (size) để split theo index; thêm sum để query.
 struct TNode {
     TNode *l = 0, *r = 0;
     int val, y, c = 1;
@@ -490,12 +458,9 @@ void moveRange(TNode*& t, int l, int r, int k) {
 
 **Mục đích:** Set có tìm phần tử thứ k & index của phần tử — "k-th nhỏ nhất trong tập động".
 
-**Ý tưởng / Observation:**
-- `order_of_key(x)` = số phần tử < x; `find_by_order(k)` = phần tử thứ k (0-based) — y hệt bài "k-th nhỏ".
-- Set THƯỜNG không có multiset → đổi `null_type` thành `int` (hoặc pair) để cho trùng.
-
 **Điều kiện sử dụng:**
 - `#include <ext/pb_ds/tree_policy.hpp>`; namespace `__gnu_pbds`. `join` cần 2 tree rời (không giao).
+- Set thường không có multiset → đổi `null_type` thành `int` (hoặc pair) để cho trùng.
 
 **Độ phức tạp:**
 - Time: $O(\log n)$ mỗi thao tác.
@@ -505,6 +470,7 @@ void moveRange(TNode*& t, int l, int r, int k) {
 
 ```cpp
 // id: ost
+// order_of_key(x) = số phần tử < x; find_by_order(k) = phần tử thứ k (0-based).
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 using namespace __gnu_pbds;
@@ -520,14 +486,10 @@ using Tree = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node
 
 **Mục đích:** Trả lời Q truy vấn đoạn offline khi có add/del 1 phần tử $O(1)$ — gộp answer mà không cần segment tree.
 
-**Ý tưởng / Observation:**
-- Sắp truy vấn theo block `L/sqrt(Q)` rồi `R` Ziczac (xor `-(L/snk & 1)`) → tổng chuyển $O((N+Q)√N)$.
-- `blk = N/sqrt(Q)` là tối ưu; với N=Q=1e5 → ~300-350.
-- Bài trên CÂY: query ĐƯỜNG ĐI → euler tour entry/exit (mỗi đỉnh 2 lần, code `motree` dưới đây) + flip; query SUBTREE → dùng thẳng mảng preorder (Euler tour mục 05) với add/del, không cần flip.
-
 **Điều kiện sử dụng:**
 - OFFLINE. `add/del(ind, end)` phải $O(1)$; `calc()` trả answer hiện tại. Mảng static giữa các truy vấn.
 - Truy vấn nửa mở `[L, R)` — `Q = {L, R}` với R exclusive (chuyển `R+1` nếu input closed).
+- Bài trên CÂY: query ĐƯỜNG ĐI → euler tour entry/exit (mỗi đỉnh 2 lần, code `motree` dưới đây) + flip; query SUBTREE → dùng thẳng mảng preorder (Euler tour mục 05) với add/del, không cần flip.
 
 **Độ phức tạp:**
 - Time: $O((N + Q)\cdot √N)$
@@ -537,7 +499,8 @@ using Tree = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node
 
 ```cpp
 // id: mo
-// add(a[ind]) / del(a[ind]) / calc() — viết theo bài
+// add(a[ind]) / del(a[ind]) / calc() — viết theo bài.
+// sắp truy vấn theo block L/sqrt(Q) rồi R Ziczac (xor -(L/snk & 1)) → tổng chuyển O((N+Q)√N). blk = N/sqrt(Q) tối ưu; N=Q=1e5 → ~300-350.
 vi mo(vector<pii> Q, vector<int>& a) {  // ví dụ: tính distinct count
     int n = sz(a), L = 0, R = 0, blk = max(1, (int)(n / sqrt(max(1, sz(Q)))));
     vi cnt(n + 1, 0), ans(sz(Q));
@@ -596,12 +559,8 @@ void motBuild(vector<vi>& g, int root = 0) {  // gọi trước mọi query
 
 **Mục đích:** Ánh xạ giá trị lớn/rời rạc ($10^9$) về index `[0, n)` nhỏ — cần cho segtree theo giá trị.
 
-**Ý tưởng / Observation:**
-- `sort(unique)` rồi `lower_bound` — sau nén, mọi so sánh thứ tự GIỮ NGUYÊN.
-- Bài "k-th nhỏ nhất theo giá trị" → nén giá trị rồi làm trên index — kết hợp persistent segment tree (mục Persistent) hoặc offline query.
-
 **Điều kiện sử dụng:**
-- Nén sau khi biết toàn bộ tập giá trị (offline) — hoặc dùng `map` nếu cần online.
+- Nén sau khi biết toàn bộ tập giá trị (offline) — hoặc dùng `map` nếu cần online. Bài "k-th nhỏ nhất theo giá trị" → nén giá trị rồi làm trên index (kết hợp persistent segment tree mục persistent).
 
 **Độ phức tạp:**
 - Time: $O(n \log n)$ build, $O(\log n)$ query.
@@ -611,6 +570,7 @@ void motBuild(vector<vi>& g, int root = 0) {  // gọi trước mọi query
 
 ```cpp
 // id: compress
+// sort(unique) rồi lower_bound — sau nén, mọi so sánh thứ tự GIỮ NGUYÊN.
 struct Compress {
     vector<ll> v;
     Compress(vector<ll>& a) : v(a) {

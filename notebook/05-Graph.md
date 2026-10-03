@@ -4,13 +4,8 @@
 
 **Mục đích:** Sắp xếp đỉnh theo chiều cạnh; phát hiện chu trình (kết quả < n phần tử).
 
-**Ý tưởng / Observation:**
-- Kahn (BFS đếm indegree): kết quả có `< n` đỉnh → có chu trình (các đỉnh còn lại reachable từ chu trình).
-- DP trên DAG topo: duyệt theo thứ tự topo, relax mọi cạnh — 1 pass.
-- Bài "thứ tự thỏa điều kiện phụ thuộc" → topo; "số đường đi trên DAG" → topo + DP.
-
 **Điều kiện sử dụng:**
-- Đồ thị có hướng. Multi-edge OK.
+- Đồ thị có hướng. Multi-edge OK. Bài "thứ tự thỏa điều kiện phụ thuộc" → topo; "số đường đi trên DAG" → topo + DP.
 
 **Độ phức tạp:**
 - Time: $O(V + E)$
@@ -20,6 +15,7 @@
 
 ```cpp
 // id: topo
+// Kahn (BFS đếm indegree): kết quả có < n đỉnh → có chu trình. DP trên DAG: duyệt theo thứ tự topo, relax mọi cạnh — 1 pass.
 vi topoSort(const vector<vi>& gr) {  // gr[u] = danh sách kề đi ra
     vi indeg(sz(gr)), q;
     for (auto& li : gr) for (int x : li) indeg[x]++;
@@ -33,12 +29,8 @@ vi topoSort(const vector<vi>& gr) {  // gr[u] = danh sách kề đi ra
 
 **Mục đích:** Shortest path với cạnh âm; phát hiện chu trình âm (dist = -INF cho đỉnh bị ảnh hưởng).
 
-**Ý tưởng / Observation:**
-- Relax $V-1$ lần; lần thứ V còn relax → đỉnh đó nằm trên đường qua chu trình âm → lan `-inf` ra mọi nơi reach được.
-- $V^2 \cdot \max|w| < 2^{63}$ để tránh tràn (hoặc check khi cộng).
-
 **Điều kiện sử dụng:**
-- Đồ thị có hướng/bất kỳ; `inf = LLONG_MAX/2` (cộng không tràn).
+- Đồ thị có hướng/bất kỳ; `inf = LLONG_MAX/2` (cộng không tràn). $V^2 \cdot \max|w| < 2^{63}$ để tránh tràn.
 
 **Độ phức tạp:**
 - Time: $O(V\cdot E)$
@@ -48,6 +40,7 @@ vi topoSort(const vector<vi>& gr) {  // gr[u] = danh sách kề đi ra
 
 ```cpp
 // id: bellman
+// relax V-1 lần; lần thứ V còn relax → đỉnh đó nằm sau chu trình âm → lan -inf ra mọi nơi reach được.
 const ll BF_INF = LLONG_MAX / 2;
 struct Edge {
     int u, v, w;
@@ -78,11 +71,6 @@ vector<ll> bellmanFord(int n, vector<Edge>& ed, int s) {
 
 **Mục đích:** Tất cả cặp đường đi ngắn nhất (APSP), gồm đường đi âm và chu trình âm.
 
-**Ý tưởng / Observation:**
-- `m[i][j] = inf` nếu kề; `m[i][i] = min(m[i][i], 0)` để tự loop không âm.
-- Sau vòng k: `m[k][k] < 0` → mọi `i,j` reach qua k thành `-inf`.
-- Check `m[i][k] != inf && m[k][j] != inf` trước khi cộng để tránh tràn/`inf + x`.
-
 **Điều kiện sử dụng:**
 - $N \le 400\text{-}1000$; `inf = 1LL<<62` (cộng 2 inf không tràn). Dùng cho "shortest path + còn lại" — thêm vòng k ở giữa.
 
@@ -94,6 +82,8 @@ vector<ll> bellmanFord(int n, vector<Edge>& ed, int s) {
 
 ```cpp
 // id: floyd
+// m[i][i] = min(m[i][i], 0) để tự loop không âm. Sau vòng k: m[k][k] < 0 → mọi i,j reach qua k thành -inf.
+// Check m[i][k] != inf && m[k][j] != inf trước khi cộng để tránh tràn.
 const ll FW_INF = 1LL << 62;
 void floydWarshall(vector<vector<ll>>& m) {
     int n = sz(m);
@@ -112,13 +102,9 @@ void floydWarshall(vector<vector<ll>>& m) {
 
 **Mục đích:** Thành phần liên thông mạnh của đồ thị có hướng — co-condensation graph, topo trên SCC.
 
-**Ý tưởng / Observation:**
-- `scc(g, callback)` duyệt component theo thứ tự **ngược topo** (component ra trước chỉ có cạnh vào từ sau) — trực tiếp dùng cho DP trên condensation.
-- `comp[u] < comp[v]` → từ u KHÔNG tới được v (vì thứ tự ngược); co lại thành DAG.
-- Bài "gộp strongly connected rồi DP" / "kiểm tra 2 đỉnh song song reach" → SCC.
-
 **Điều kiện sử dụng:**
 - `comp` gán trước khi callback (khi `low == val`). Mảng global `val, comp, z, Time, ncomps` — reset khi gọi lại.
+- Bài "gộp strongly connected rồi DP" / "kiểm tra 2 đỉnh song song reach" → SCC.
 
 **Độ phức tạp:**
 - Time: $O(V + E)$
@@ -128,6 +114,8 @@ void floydWarshall(vector<vector<ll>>& m) {
 
 ```cpp
 // id: scc
+// scc(g, callback) duyệt component theo thứ tự NGƯỢC TOPO (component ra trước chỉ có cạnh vào từ sau) — trực tiếp dùng cho DP trên condensation.
+// comp[u] < comp[v] → từ u KHÔNG tới được v; co lại thành DAG.
 vi sccVal, sccComp, sccZ;
 int sccTime, sccCnt;
 template <class G, class F>
@@ -163,11 +151,6 @@ void scc(G& g, F f) {
 
 **Mục đích:** Tìm nghiệm cho hệ mệnh đề $(a \lor b) \land (\lnot a \lor c) \land \dots$ — biến đổi thành đồ thị IMP.
 
-**Ý tưởng / Observation:**
-- $a \lor b$ → $\lnot a \to b$ và $\lnot b \to a$; chạy SCC, nếu $x$ và $\lnot x$ cùng component → UNSAT.
-- Gán giá trị theo thứ tự topo của condensation: component ra trước = false… (bản này gán trực tiếp trong DFS).
-- `atMostOne({a,b,c})` — thêm biến auxiliary, chain: $(\lnot cur \lor \lnot b_i)$, $(\lnot cur \lor next)$…
-
 **Điều kiện sử dụng:**
 - Biến `x` ↔ node `2x` (true) / `2x+1` (false); `~x = x^1` (bit inverse). Số biến = N, node = 2N.
 
@@ -179,6 +162,8 @@ void scc(G& g, F f) {
 
 ```cpp
 // id: twosat
+// a ∨ b → ¬a → b và ¬b → a; chạy SCC, nếu x và ¬x cùng component → UNSAT. Gán giá trị theo thứ tự topo của condensation.
+// atMostOne({a,b,c}): thêm biến auxiliary, chain (¬cur ∨ ¬b_i), (¬cur ∨ next)…
 struct TwoSat {
     int N;
     vector<vi> gr;
@@ -241,13 +226,8 @@ struct TwoSat {
 
 **Mục đích:** Tìm cầu (edge thuộc mọi đường đi), điểm bậc 3, thành phần 2-vertex-connected — rebuild graph bỏ cầu/ điểm cắt.
 
-**Ý tưởng / Observation:**
-- DFS lowlink: `low[child] > num[u]` → cạnh `(u, child)` LÀ CẦU (không vòng quay).
-- Node thuộc NHIỀU component → đó là điểm cắt; component callback nhận list edge-id.
-- Bài "loại bỏ cầu → phân rã" / "2 bộ lọc 2 điểm" → biconnected.
-
 **Điều kiện sử dụng:**
-- `ed[a] = {b, edgeId}` — mỗi cạnh có id RIÊNG (với vô hướng: 2 hướng cùng id).
+- `ed[a] = {b, edgeId}` — mỗi cạnh có id RIÊNG (với vô hướng: 2 hướng cùng id). Bài "loại bỏ cầu → phân rã" / "2 bộ lọc 2 điểm" → biconnected.
 
 **Độ phức tạp:**
 - Time: $O(V + E)$
@@ -257,6 +237,7 @@ struct TwoSat {
 
 ```cpp
 // id: biconnected
+// DFS lowlink: low[child] > num[u] → cạnh (u, child) LÀ CẦU. Node thuộc NHIỀU component → điểm cắt; component callback nhận list edge-id.
 vi bcNum, bcSt;
 vector<vector<pii>> bcEd;  // bcEd[u] = {v, edgeId}
 int bcTime;
@@ -300,13 +281,9 @@ void bicomps(F f) {
 
 **Mục đích:** Co đồ thị vô hướng về CÂY để trả lời "2 đỉnh còn nối sau khi xóa cầu / xóa đỉnh?" bằng so node trên cây — gộp 2 loại vào 1 chỗ (code tách rõ phần A / phần B).
 
-**Ý tưởng / Observation:**
-- **PHẦN A — BRIDGE TREE** (`bridgetree`): DFS lowlink tìm cầu (`low[v] > num[u]`), gộp 2 đầu qua cạnh KHÔNG phải cầu (DSU) → mỗi thành phần 1 node, mỗi cầu 1 cạnh của cây. `comp[u] == comp[v]` ⇔ đường u–v KHÔNG qua cầu nào.
-- **PHẦN B — BLOCK-CUT TREE** (`blockcut`): gọi SAU `bicomps()` (mục Cầu & biconnected). Cầu không thuộc component nào (quy ước KACTL) → mỗi cầu tự là 1 block riêng. Node `[0, B)` = block, `[B, B+C)` = điểm cắt; đỉnh thuộc $\ge 2$ block ⇔ điểm cắt. `vtx[v]` = node đại diện của v (`cutId[v]` nếu là cut, không thì block chứa v).
-- Dùng: xóa cut `x` → u, v còn nối ⇔ đường đi `vtx[u]` → `vtx[v]` trên cây KHÔNG đi qua node `cutId[x]` (LCA/DFS trên cây); xóa toàn bộ cầu → thành phần = node cây cầu.
-
 **Điều kiện sử dụng:**
 - `bcEd` dùng chung với `biconnected` (mỗi cạnh 1 id, 2 hướng cùng id). Đỉnh không có cạnh → `vtx = -1` (không thuộc block nào).
+- Dùng: xóa cut `x` → u, v còn nối ⇔ đường đi `vtx[u]` → `vtx[v]` trên cây KHÔNG đi qua node `cutId[x]` (LCA/DFS trên cây); xóa toàn bộ cầu → thành phần = node cây cầu.
 
 **Độ phức tạp:**
 - Time: $O(V + E)$ cho cả 2 phần.
@@ -317,6 +294,8 @@ void bicomps(F f) {
 ```cpp
 // id: bridgetree
 // ====== PHẦN A — BRIDGE TREE (cây cầu) ======
+// DFS lowlink tìm cầu (low[v] > num[u]), gộp 2 đầu qua cạnh KHÔNG phải cầu (DSU) → mỗi thành phần 1 node, mỗi cầu 1 cạnh.
+// comp[u] == comp[v] ⇔ đường u–v KHÔNG qua cầu nào.
 // ed[u] = {v, edgeId}; mỗi cạnh vô hướng có MỘT id dùng chung cho 2 hướng.
 struct BridgeTree {
     vi comp;            // comp[u] = node trong cây cầu [0, ncomp)
@@ -362,6 +341,7 @@ struct BridgeTree {
 ```cpp
 // id: blockcut
 // ====== PHẦN B — BLOCK-CUT TREE ======
+// gọi SAU bicomps(). Cầu không thuộc component nào → 1 block riêng. Node [0, B) = block, [B, B+C) = điểm cắt; đỉnh thuộc ≥ 2 block ⇔ điểm cắt. vtx[v] = node đại diện của v.
 // Gọi SAU bicomps() (id: biconnected). Cầu (không thuộc component nào) → 1 block riêng.
 // Node [0, B) = block, [B, B+C) = điểm cắt; cutId[v] ≥ 0 nếu v là cut; vtx[v] = node của v.
 void buildBlockCut(const vector<vector<pii>>& bcEd, const vector<vi>& comps, vi& cutId, vi& vtx,
@@ -409,13 +389,8 @@ void buildBlockCut(const vector<vector<pii>>& bcEd, const vector<vi>& comps, vi&
 
 **Mục đích:** Đường đi Euler (đi qua mọi cạnh đúng 1 lần) — tồn tại khi và chỉ khi liên thông + số đỉnh lẻ $\le 2$.
 
-**Ý tưởng / Observation:**
-- Hierholzer iterative: stack, khi không còn cạnh → đẩy vào kết quả (đảo ngược = thứ tự).
-- `D[src]++` ban đầu cho phép PATH (không chỉ cycle); check cuối: `sz(ret) == nedges + 1`.
-- Bài "xếp hình/domino thành chuỗi" → Euler path trên đồ thị cạnh.
-
 **Điều kiện sử dụng:**
-- Input: `gr[u] = {v, edgeId}`; vô hướng: 2 hướng cùng id (đánh dấu `eu[e]` đã dùng). Đồ thị vô hướng/có hướng tùy biến `D`.
+- Input: `gr[u] = {v, edgeId}`; vô hướng: 2 hướng cùng id (đánh dấu `eu[e]` đã dùng). Đồ thị vô hướng/có hướng tùy biến `D`. Bài "xếp hình/domino thành chuỗi" → Euler path trên đồ thị cạnh.
 
 **Độ phức tạp:**
 - Time: $O(V + E)$
@@ -425,6 +400,7 @@ void buildBlockCut(const vector<vector<pii>>& bcEd, const vector<vi>& comps, vi&
 
 ```cpp
 // id: eulerwalk
+// Hierholzer iterative: stack, khi không còn cạnh → đẩy vào kết quả (đảo ngược = thứ tự). D[src]++ ban đầu cho phép PATH; check cuối: sz(ret) == nedges + 1.
 vi eulerWalk(vector<vector<pii>>& gr, int nedges, int src = 0) {
     int n = sz(gr);
     vi D(n), its(n), eu(nedges), ret, s = {src};
@@ -455,14 +431,9 @@ vi eulerWalk(vector<vector<pii>>& gr, int nedges, int src = 0) {
 
 **Mục đích:** LCA, khoảng cách 2 đỉnh, nhảy tổ tiên k bước, kiểm tra ancestor — $O(\log)$ mỗi query.
 
-**Ý tưởng / Observation:**
-- `jmp[i][v]` = tổ tiên $2^i$; root trỏ vào chính nó → code ngắn.
-- $dist(u,v) = depth[u] + depth[v] - 2\cdot depth[lca]$; depth từ DFS (BFS cũng được).
-- Bài "query trên đường đi u→v" (aggregate) → dùng LCA tách thành 2 nhánh đi lên + HLD (khi cần update).
-- LCA $O(1)$ không log (chỉ LCA, không update): RMQ depth trên euler tour LOẠI ĐƯỜNG ĐI — xem "Euler tour trên cây — 3 loại".
-
 **Điều kiện sử dụng:**
 - Cây n (0-based); `P[root] = root`. `log` $\le 60$ với $n \le 10^{18}$? → `lg = 63 - clz`.
+- Bài "query trên đường đi u→v" (aggregate) → LCA tách thành 2 nhánh đi lên + HLD (khi cần update). LCA $O(1)$ (chỉ LCA, không update): RMQ depth trên euler tour LOẠI ĐƯỜNG ĐI — xem "Euler tour trên cây — 3 loại".
 
 **Độ phức tạp:**
 - Time: $O(n \log n)$ build, $O(\log n)$ query.
@@ -472,6 +443,7 @@ vi eulerWalk(vector<vector<pii>>& gr, int nedges, int src = 0) {
 
 ```cpp
 // id: lca
+// jmp[i][v] = tổ tiên 2^i; root trỏ vào chính nó. dist(u,v) = depth[u] + depth[v] - 2·depth[lca].
 vector<vi> treeJump(vi& P) {  // P[v] = cha (root: P[root]=root)
     int on = 1, d = 1;
     while (on < sz(P)) on *= 2, d++;
@@ -500,14 +472,9 @@ int lca(vector<vi>& tbl, vi& depth, int a, int b) {
 
 **Mục đích:** Phẳng hóa cây thành mảng — CHỌN LOẠI THEO MỤC ĐÍCH: subtree, LCA/đường đi, hay Mo trên cây.
 
-**Ý tưởng / Observation:**
-- **Loại 1 — preorder (mảng n)** `eulertour`: `in[v]`/`out[v]` = thời gian vào/ra → subtree = `[in[v], out[v])`, mỗi đỉnh đúng 1 lần. Dùng cho subtree query/update bằng segtree, thứ tự DFS bottom-up (không cần lật trạng thái).
-- **Loại 2 — đường đi (mảng 2n−1)** `eulpath`: ghi đỉnh khi vào + SAU MỖI con; `tin/tout` = lần xuất hiện đầu/cuối → subtree = `[tin, tout]`. **LCA(u, v) = đỉnh depth nhỏ nhất trên `[tin[u], tin[v]]`** → RMQ (sparse table mục 04) cho LCA $O(1)$ không log. Dùng khi cần LCA thật nhiều hoặc làm việc trực tiếp trên mảng đường đi.
-- **Loại 3 — entry/exit (mảng 2n)** `motree`: mỗi đỉnh đúng 2 lần (vào + ra) → đặt tại **04 — Mo's algorithm** (đúng chỗ dùng): đường đi u→v = 1 đoạn, đỉnh NGOÀI đường xuất hiện chẵn lần → tự hủy khi flip. KHÔNG dùng cho DP cây/subtree (mỗi đỉnh 2 lần).
-- Chọn: subtree thuần → loại 1; LCA $O(1)$ → loại 2; Mo query đường đi → loại 3; update/query đường đi có lazy → HLD (mục dưới).
-
 **Điều kiện sử dụng:**
 - DFS đệ quy với $n \le 2\cdot 10^5$ OK; sâu hơn → iterative DFS.
+- Chọn: subtree thuần → loại 1 (preorder); LCA $O(1)$ → loại 2 (đường đi); Mo query đường đi → loại 3 (entry/exit); update/query đường đi có lazy → HLD (mục dưới).
 
 **Độ phức tạp:**
 - Time: $O(n)$ build mỗi loại; lấy subtree/path = $O(1)$ đoạn, LCA qua RMQ $O(1)$ sau $O(n \log n)$ build.
@@ -517,6 +484,7 @@ int lca(vector<vi>& tbl, vi& depth, int a, int b) {
 
 ```cpp
 // id: eulertour
+// Loại 1 (preorder): in[v]/out[v] = thời gian vào/ra → subtree = [in[v], out[v]), mỗi đỉnh đúng 1 lần.
 int etTimer = 0;
 vi etIn, etOut, etOrder;
 void etDfs(int u, int p, vector<vi>& g) {
@@ -539,7 +507,8 @@ void buildEuler(vector<vi>& g, int root = 0) {
 ```cpp
 // id: eulpath
 // Loại 2 — ĐƯỜNG ĐI (mảng 2n−1): path[] ghi đỉnh khi vào + SAU MỖI CON;
-// epTin/epTout = vị trí lần xuất hiện đầu/cuối trong epPath.
+// epTin/epTout = vị trí lần xuất hiện đầu/cuối trong epPath → subtree = [tin, tout].
+// LCA(u,v) = đỉnh depth nhỏ nhất trên [tin[u], tin[v]] → RMQ (sparse table) cho LCA O(1).
 vi epTin, epTout, epPath, epDep;  // epDep[u] = depth (gốc depth 0)
 void epDfs(int u, int p, vector<vi>& g, int d) {
     epDep[u] = d;
@@ -569,14 +538,9 @@ void buildEulerPath(vector<vi>& g, int root = 0) {
 
 **Mục đích:** Phân rã cây thành các heavy path — query/update `max`/`sum`/`add` trên ĐƯỜNG ĐI u→v và subtree trong $O(\log^2 n)$.
 
-**Ý tưởng / Observation:**
-- Cây n thành $\le \log n$ light edge trên đường root→node → mỗi query chạm $\le \log n$ đoạn liên tục trong mảng `pos`.
-- `process(u, v, op)` gộp các đoạn `[l, r)` theo thứ tự → gắn với segtree (tư duy: aggregate trên mảng `pos`).
-- `VALS_EDGES = true` khi giá trị nằm ở CẠNH (offset `pos[u]+1`); `false` khi ở ĐỈNH.
-- Bài "query max/add trên đường đi 2 đỉnh + update subtree" → HLD + segtree (KHÔNG thể chỉ LCA nếu có update).
-
 **Điều kiện sử dụng:**
 - Root = 0; adj nhận vào (bản này tự xóa parent khỏi danh sách kề → adj bị sửa). Dùng với `LazySeg` (lazy segtree mục 04) — dependency `lazysegtree`.
+- Bài "query max/add trên đường đi 2 đỉnh + update subtree" → HLD + segtree (KHÔNG thể chỉ LCA nếu có update).
 
 **Độ phức tạp:**
 - Time: $O(n \log n)$ build, $O(\log^2 n)$ mỗi path query/update.
@@ -586,6 +550,8 @@ void buildEulerPath(vector<vi>& g, int root = 0) {
 
 ```cpp
 // id: hld
+// cây n thành ≤ log n light edge trên đường root→node → mỗi query chạm ≤ log n đoạn liên tục trong mảng pos.
+// process(u, v, op) gộp các đoạn [l, r) theo thứ tự → gắn với segtree. VALS_EDGES = true khi giá trị nằm ở CẠNH (offset pos[u]+1).
 struct HLD {
     int N, tim = 0;
     vector<vi> adj;
@@ -640,19 +606,11 @@ struct HLD {
 
 **Mục đích:** Cây khung nhỏ nhất (hoặc lớn nhất, đổi dấu trọng số) đồ thị vô hướng; build MST rồi trả lời truy vấn trên cây khung.
 
-**Ý tưởng / Observation:**
-- Sort cạnh + DSU → $O(E \log E)$; stop khi gộp được $n-1$ cạnh.
-- Không liên thông → MST không tồn tại (kiểm tra số component = 1).
-- **Tính chất cắt (cut property):** cạnh nhẹ nhất cắt qua bất kỳ tập đỉnh nào LUÔN thuộc MST. **Tính chất chu trình (cycle property):** cạnh nặng nhất trong chu trình KHÔNG thuộc MST.
-- **Truy vấn trên MST** (bài xây MST rồi query):
-  - Với cạnh ngoài MST $(u, v, w)$: $w = \max_{e \in P(u,v)} \mathrm{wt}(e)$ — mọi cạnh trên đường $P(u,v)$ trong MST nhẹ hơn. → Query "cạnh nặng nhất / nhẹ nhất trên đường 2 đỉnh" sau khi build MST → HLD hoặc binary lifting (mục HLD / Binary lifting).
-  - Second-best MST: $\mathrm{best} = \min_{(u,v,w) \notin \mathrm{MST}} \left(w - \max_{e \in P(u,v)} \mathrm{wt}(e)\right)$ (kể cả cạnh trùng trong input).
-  - MST duy nhất ⇔ mọi cạnh ngoài MST có $w > \max_{e \in P(u,v)} \mathrm{wt}(e)$ (bất đẳng nghiêm ngặt).
-  - Nhiều query offline "2 đỉnh còn nối sau khi bỏ cạnh nặng nhất?" → sắp theo trọng số rồi Kruskal + DSU (gộp query vào lần gộp tương ứng).
-- Đếm SỐ cây khung nhỏ nhất → Kirchhoff (matrix tree) — xem mục Determinant mod.
-
 **Điều kiện sử dụng:**
 - Đồ thị vô hướng; cạnh trùng OK. Prim ($O(E \log V)$) nhanh hơn với đồ thị dày. Query trên MST → dựng adjacency từ danh sách cạnh MST trả về.
+- **Tính chất cắt:** cạnh nhẹ nhất cắt qua bất kỳ tập đỉnh nào LUÔN thuộc MST. **Tính chất chu trình:** cạnh nặng nhất trong chu trình KHÔNG thuộc MST.
+- **Truy vấn trên MST:** cạnh ngoài MST $(u,v,w)$: $w = \max_{e \in P(u,v)} \mathrm{wt}(e)$ → query "cạnh nặng nhất trên đường 2 đỉnh" bằng HLD/binary lifting. Second-best MST: $\mathrm{best} = \min_{(u,v,w) \notin \mathrm{MST}} (w - \max_{e \in P(u,v)} \mathrm{wt}(e))$. MST duy nhất ⇔ mọi cạnh ngoài MST có $w > \max_{e \in P(u,v)} \mathrm{wt}(e)$.
+- Đếm SỐ cây khung → Kirchhoff (matrix tree) — xem mục Determinant mod.
 
 **Độ phức tạp:**
 - Time: $O(E \log E)$ build; query trên cây $O(\log n)$ (LCA/binary lifting) hoặc $O(\log^2 n)$ (HLD).
@@ -663,6 +621,7 @@ struct HLD {
 ```cpp
 // id: kruskal
 // edges = {w, u, v} — trả về trọng số MST, -1 nếu không liên thông.
+// sort cạnh + DSU → O(E log E); stop khi gộp được n-1 cạnh. Không liên thông → MST không tồn tại.
 // used ≠ nullptr → nhận index các cạnh được chọn (dựng adjacency cây cho query).
 ll kruskal(int n, vector<array<ll, 3>> edges, vi* used = nullptr) {
     sort(all(edges));
@@ -687,13 +646,9 @@ ll kruskal(int n, vector<array<ll, 3>> edges, vi* used = nullptr) {
 
 **Mục đích:** Luồng cực đại nhanh; sau khi chạy, min-cut đọc từ nhãn (H).
 
-**Ý tưởng / Observation:**
-- Highest-label + gap heuristic → thực tế rất nhanh ($n \le 5 \cdot 10^3$, $m \le 10^5$).
-- **Min-cut:** `leftOfMinCut(v)` = $H[v] \ge V$ — tập S = đỉnh này, cắt = cạnh capacity >0 từ S sang T.
-- Lấy flow thực: nhìn `e.f` (flow đi qua) hoặc $cap - residual$ với cạnh ngược.
-
 **Điều kiện sử dụng:**
 - `addEdge(s, t, cap, rcap=0)`; vô hướng: `addEdge(u,v,c,c)`. Self-loop bị bỏ.
+- **Min-cut:** `leftOfMinCut(v)` = $H[v] \ge V$ — tập S = đỉnh này, cắt = cạnh capacity >0 từ S sang T. Lấy flow thực: nhìn `e.f` hoặc $cap - residual$.
 
 **Độ phức tạp:**
 - Time: $O(V^2\cdot √E)$ (worst), thực tế tốt hơn.
@@ -703,6 +658,7 @@ ll kruskal(int n, vector<array<ll, 3>> edges, vi* used = nullptr) {
 
 ```cpp
 // id: pushrelabel
+// highest-label + gap heuristic → thực tế rất nhanh (n ≤ 5e3, m ≤ 1e5).
 struct PushRelabel {
     struct Edge {
         int dest, back;
@@ -763,13 +719,9 @@ struct PushRelabel {
 
 **Mục đích:** Luồng cực đại với chi phí cực tiểu — assignment, flow có trọng số.
 
-**Ý tưởng / Observation:**
-- Shortest path s→t với potential `pi` (giá trị dist thực = $dist[v] + pi[v] - pi[t]$) → xử lý cạnh âm (KHÔNG có chu trình âm).
-- `setpi(s)` chạy Bellman-Ford trước nếu có cạnh âm (mục đích: potential hợp lệ).
-- Lấy flow: nhìn `e.flow > 0` (bản này lưu `flow` riêng).
-
 **Điều kiện sử dụng:**
 - Chi phí âm OK (có setpi), nhưng không có chu trình âm. `INF = max/4` tránh tràn.
+- `setpi(s)` chạy Bellman-Ford trước nếu có cạnh âm (potential hợp lệ). Lấy flow: nhìn `e.flow > 0`.
 
 **Độ phức tạp:**
 - Time: $O(F\cdot E \log V)$ (F = max flow), setpi $O(V\cdot E)$.
@@ -779,6 +731,7 @@ struct PushRelabel {
 
 ```cpp
 // id: mcmf
+// shortest path s→t với potential pi (dist thực = dist[v] + pi[v] - pi[t]) → xử lý cạnh âm.
 const ll MCMF_INF = numeric_limits<ll>::max() / 4;
 struct MCMF {
     struct edge {
@@ -850,13 +803,8 @@ struct MCMF {
 
 **Mục đích:** Matching cực đại đồ thị nhị phân — nén bài "chọn cặp", 2-SAT biến… nhanh hơn DFS matching.
 
-**Ý tưởng / Observation:**
-- BFS layering + DFS augmenting theo layer → $O(√V\cdot E)$.
-- `btoa[u]` = đỉnh phải được ghép với u (−1 nếu không); `g[x]` = kề của đỉnh trái x.
-- $V \le 10^3$ → DFS matching ($O(VE)$) đủ; lớn hơn → HK.
-
 **Điều kiện sử dụng:**
-- Đồ thị nhị phân, `g` chỉ chứa đỉnh trái, `btoa` size = số đỉnh phải, khởi tạo −1.
+- Đồ thị nhị phân, `g` chỉ chứa đỉnh trái, `btoa` size = số đỉnh phải, khởi tạo −1. $V \le 10^3$ → DFS matching ($O(VE)$) đủ; lớn hơn → HK.
 
 **Độ phức tạp:**
 - Time: $O(√V \cdot E)$
@@ -866,6 +814,7 @@ struct MCMF {
 
 ```cpp
 // id: hopcroft
+// BFS layering + DFS augmenting theo layer → O(√V·E). btoa[u] = đỉnh phải được ghép với u (−1 nếu không).
 bool hkDfs(int a, int L, vector<vi>& g, vi& btoa, vi& A, vi& B) {
     if (A[a] != L) return false;
     A[a] = -1;
@@ -915,10 +864,6 @@ int hopcroftKarp(vector<vi>& g, vi& btoa) {  // g[x] = kề đỉnh trái x; bto
 
 **Mục đích:** Matching cực tiểu chi phí (hoặc cực đại, đổi dấu chi phí) — gán N việc cho M người.
 
-**Ý tưởng / Observation:**
-- `hungarian(a)` trả `(minCost, match)` với `match[i]` = việc gán cho người i. Đòi hỏi $N \le M$.
-- Dùng potential rút ngắn bước lặp → $O(N^2M)$; với $N, M \le 500$ OK.
-
 **Điều kiện sử dụng:**
 - `a[i][j]` = chi phí; đổi dấu để maximize. $N \le M$ (không đủ việc → bổ sung cột 0).
 
@@ -930,6 +875,7 @@ int hopcroftKarp(vector<vi>& g, vi& btoa) {  // g[x] = kề đỉnh trái x; bto
 
 ```cpp
 // id: hungarian
+// hungarian(a) trả (minCost, match) với match[i] = việc gán cho người i. Dùng potential rút ngắn bước lặp → O(N^2 M); N, M ≤ 500 OK.
 pair<ll, vi> hungarian(const vector<vi>& a) {  // trả (min cost, match): L[i] → R[match[i]]
     if (a.empty()) return {0, {}};
     int n = sz(a) + 1, m = sz(a[0]) + 1;
@@ -969,13 +915,8 @@ pair<ll, vi> hungarian(const vector<vi>& a) {  // trả (min cost, match): L[i] 
 
 **Mục đích:** Cắt nhỏ nhất giữa s,t = giá trị max-flow (max-flow min-cut) — đếm/ liệt kê cạnh cắt.
 
-**Ý tưởng / Observation:**
-- Chạy max-flow xong → BFS/DFS từ s trên cạnh `residual > 0`; tập reach = S (bên trái).
-- Cạnh cắt = cạnh `capacity > 0` từ S sang `T`. Số đỉnh S = thuật toán sẵn (`leftOfMinCut` của Push-relabel).
-- "Cắt nhỏ nhất rồi tối ưu cái khác" → max-flow, đọc S/T rồi gán.
-
 **Điều kiện sử dụng:**
-- Đồ thị sau khi có flow; direction của cạnh: $u \in S, v \in T$.
+- Đồ thị sau khi có flow; direction của cạnh: $u \in S, v \in T$. Cạnh cắt = cạnh `capacity > 0` từ S sang T.
 
 **Độ phức tạp:**
 - Time: $O(V + E)$ BFS thêm (sau flow).
@@ -985,6 +926,7 @@ pair<ll, vi> hungarian(const vector<vi>& a) {  // trả (min cost, match): L[i] 
 
 ```cpp
 // id: mincut — tìm tập S sau max-flow (Push-relabel)
+// chạy max-flow xong → BFS/DFS từ s trên cạnh residual > 0; tập reach = S. "Cắt nhỏ nhất rồi tối ưu cái khác" → max-flow, đọc S/T rồi gán.
 vi minCutSide(PushRelabel& pr) {
     int n = sz(pr.g);
     vi side(n, 0);

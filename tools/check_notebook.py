@@ -44,6 +44,7 @@ def parse_notebook():
         lines = text.splitlines()
         heading = "(top)"
         pos = 0
+        first_cpp = True  # block cpp đầu của 00-Template.md chính là header mẫu
         for i, line in enumerate(lines):
             if line.startswith("## "):
                 heading = line[3:]
@@ -73,10 +74,13 @@ def parse_notebook():
                         print(f"[dup] id '{sid}' ở {md.name} bị bỏ qua (đã có ở {snippets[sid]['file']})")
                     else:
                         snippets[sid] = dict(code=code, deps=deps,
-                                             file=md.name, heading=heading)
+                                             file=md.name, heading=heading,
+                                             is_header=False)
                 else:
                     snippets[f"__noid__{md.stem}_{len(snippets)}"] = dict(
-                        code=code, deps=deps, file=md.name, heading=heading)
+                        code=code, deps=deps, file=md.name, heading=heading,
+                        is_header=(md.name == "00-Template.md" and first_cpp))
+                first_cpp = False
     return snippets
 
 
@@ -109,9 +113,13 @@ def resolve(sid, snippets, seen=None):
 
 
 def build_tu(sid, snippets, with_main=True):
-    header = template_header()
-    body = resolve(sid, snippets)
-    tu = header + "\n" + "\n\n".join(body)
+    if snippets[sid].get("is_header"):
+        # header mẫu tự chứa main: biên dịch độc lập, không ghép header lên chính nó
+        tu = snippets[sid]["code"]
+    else:
+        header = template_header()
+        body = resolve(sid, snippets)
+        tu = header + "\n" + "\n\n".join(body)
     if with_main and "int main(" not in tu:
         tu += "\n\nint main() { (void)0; }\n"
     return tu

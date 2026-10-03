@@ -2,7 +2,7 @@
 
 Sổ tay cá nhân: **10 file nội dung** (mô tả tiếng Việt, code C++17) + **1 file danh sách thuật toán**. Mỗi mục có cấu trúc:
 
-> **Tên → Mục đích → Ý tưởng / Observation → Điều kiện sử dụng → Độ phức tạp (Time + Space) → `**Dependency:**` → Code**
+> **Tên → Mục đích → Điều kiện sử dụng → Độ phức tạp (Time + Space) → `**Dependency:**` → Code**
 
 Đoạn code luôn đánh dấu `// id: <tên>` để tra cứu và ghép tự động.
 
@@ -62,4 +62,5 @@ Test cũng sửa theo: bật lại assert `trie` counts, tăng assert φ (xem `t
 
 - **Không `do-while`** (chỉ `for`/`while`); **không Fenwick/BIT** — mọi bài BIT cũ đã chuyển sang segment tree; **Dijkstra** bỏ khỏi notebook (chỉ còn tên trong danh sách).
 - Công thức toán viết bằng `$...$` / `$$...$$`; identifier/biểu thức code giữ trong `` `...` ``. Ký tự ngay trước `$` mở phải là space / đầu dòng / `(` thì mới render (vd đúng: `~ $10^9$`, `$O(1)$ / $O(n)$`; sai: `~$10^9$`, `$O(1)$/$O(n)$` — sẽ hiện thô); block `$$..$$` cần dòng trống trước và sau (rule đã probe qua GitHub Markdown API).
-- Snippet tối giản, trừu tượng hóa tối thiểu, có chú thích observation trọng yếu — copy-and-go khi thi.
+- Snippet tối giản, trừu tượng hóa tối thiểu; ý trọng yếu của observation cũ nằm trong code comment — copy-and-go khi thi.
+- **Mục đích** = dùng để làm gì + tính năng gì (ngắn gọn); **Điều kiện sử dụng** = tổng quát hóa (tính chất update/op phải thỏa mãn, dạng bài tổng quát).

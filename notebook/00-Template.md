@@ -4,11 +4,6 @@
 
 **Mục đích:** Khởi động nhanh mỗi bài: I/O nhanh, macro và typedef dùng chung cho mọi snippet trong TRD. Dán nguyên khối này vào đầu file bài giải.
 
-**Ý tưởng / Observation:**
-- `cin.tie(0)->sync_with_stdio(0)` rồi dùng `cin/cout` là đủ nhanh cho hầu hết bài (dưới ~ $2 \times 10^6$ số).
-- `cin.exceptions(cin.failbit)` → fail ngay khi đọc thiếu input/cạn EOF, chuyển RE thành lỗi rõ ràng thay vì WA im lặng. Bỏ dòng này nếu không chắc input đọc hết (vd. interactive).
-- Muốn debug có kiểm soát: chỉ định nghĩa `LOCAL` khi biên dịch local.
-
 **Điều kiện sử dụng:**
 - g++ ≥ C++17. Mọi snippet trong TRD giả sử đã có khối này (xem `**Dependency:**` từng mục).
 
@@ -27,8 +22,15 @@ using namespace std;
 #define sz(x) (int)(x).size()
 
 using ll = long long;
+using ull = unsigned long long;
 using pii = pair<int, int>;
 using vi = vector<int>;
+using vvi = vector<vi>;
+
+template <class T> ostream& operator<<(ostream& os, const vector<T>& v) {
+    for (size_t i = 0; i < v.size(); ++i) { if (i) os << ' '; os << v[i]; }
+    return os;
+}
 
 int main() {
     ios::sync_with_stdio(false);
@@ -40,10 +42,6 @@ int main() {
 ## Debug (dbg)
 
 **Mục đích:** In biến ra stderr kèm tên + số dòng khi test local; biến mất hoàn toàn khi nộp (không định nghĩa `LOCAL`).
-
-**Ý tưởng / Observation:**
-- Dùng `ostringstream` nên `dbg` hoạt động với mọi kiểu có `operator<<` (int, string, pair, vector, …).
-- `dbg` là macro: truyền biểu thức thuần, không đặt trong biểu thức sẽ chạy thật (vd. `dbg(v[i])` vẫn tính `v[i]` khi nộp). Chỉ dùng để debug, gỡ trước khi nộp nếu không chắc.
 
 **Điều kiện sử dụng:**
 - Biên dịch local kèm `-DLOCAL`. Khi nộp, KHÔNG define `LOCAL` → macro rỗng, không in gì.
@@ -78,10 +76,6 @@ template <class A> string toStr(vector<A> v) {
 
 **Mục đích:** Lệnh g++ dùng khi thi/local, sanitizer bắt RE âm thầm (tràn, chia 0, out-of-bound).
 
-**Ý tưởng / Observation:**
-- `-fsanitize=address,undefined` chậm ~10-20× → chỉ chạy local trên case nhỏ.
-- Sinh ngẫu nhiên: `gen > in.txt && ./main < in.txt > out.txt`, so `out.txt` với brute.
-
 **Điều kiện sử dụng:**
 - judge dùng g++; một số judge không bật sanitizer (không ảnh hưởng — chỉ lệnh local).
 
@@ -100,7 +94,7 @@ g++ -std=c++17 -O2 -DLOCAL -fsanitize=address,undefined -g -o main main.cpp
 
 **Mục đích:** Các trick bit dùng trực tiếp trong code, không cần cấu trúc dữ liệu.
 
-**Ý tưởng / Observation:**
+**trick**
 - `x & -x` → bit 1 thấp nhất của `x` (check lẻ, tách nhị phân).
 - Duyệt mọi subset khác rỗng của `m`: `for (int s = m; s; s = (s - 1) & m)` (giảm dần theo giá trị).
 - `__builtin_popcount(x)` = số bit 1; `31 - __builtin_clz(x)` = $\lfloor\log_2 x\rfloor$ (`63-` với `ll`); `__builtin_ctz(x)` = số bit 0 đầu.
@@ -116,7 +110,6 @@ g++ -std=c++17 -O2 -DLOCAL -fsanitize=address,undefined -g -o main main.cpp
 
 **Mục đích:** Checklist 30 giây trước khi bấm submit (WA/RE/TLE/MLE ngu nhất đều nằm trong đây).
 
-**Ý tưởng / Observation:**
 - Trước submit: chạy lại sample; sinh case max nếu TL sát; kiểm tra tràn (`int` khi tổng $\le 10^{18}$?); nộp đúng file; format output đúng (space/endl, "YES"/"NO" chữ hoa).
 - **WA:** in debug (local) / thêm `dbg`; clear toàn bộ DS giữa các test case; đọc lại đề — 0-based hay 1-based, có test đặc biệt nào chưa xử lý; xài lại STL có đúng ý không (vd. `lower_bound` vs `upper_bound`); thêm `assert` rồi submit lại.
 - **RE:** truy cập vượt `vector` (vòng lặp `<= n`?); chia 0 / `% 0`; đệ quy quá sâu (stack ~8MB → tăng mảng hoặc iterative); biến chưa khởi tạo; iterator bị invalidate sau `erase` trong vòng lặp.

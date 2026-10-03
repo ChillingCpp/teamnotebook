@@ -4,13 +4,9 @@
 
 **Mục đích:** Tìm vị trí pattern trong text; đếm occur; xây prefix function `pi[i]` = longest proper prefix = suffix của `s[0..i]`.
 
-**Ý tưởng / Observation:**
-- `pi` trả lời mọi câu hỏi "chuỗi con lặp lại": bài đếm số lần pattern xuất hiện (lặp lại chồng nhau OK), độ dài chuỗi Periodic (check `n - pi[n-1]` chia `n`), số vị trí period.
-- "Đặt pattern vào text, ngăn cách" → tìm pattern qua `s + '#' + p` rồi lấy `pi` cuối.
-- Nhận ra bài: "tìm lần xuất hiện đầu tiên / tất cả vị trí" → KMP hoặc Z; "tính lặp lại" → prefix function.
-
 **Điều kiện sử dụng:**
 - Text/pattern ASCII bất kỳ (không null byte). Chỉ dùng khi pattern cố định (offline) — nếu query nhiều pattern → Aho-Corasick.
+- Nhận ra bài: "tìm lần xuất hiện đầu tiên / tất cả vị trí" → KMP hoặc Z; "tính lặp lại" → prefix function.
 
 **Độ phức tạp:**
 - Time: $O(|text| + |pattern|)$
@@ -20,6 +16,8 @@
 
 ```cpp
 // id: kmp
+// pi trả lời mọi câu hỏi "chuỗi con lặp lại": đếm số lần pattern xuất hiện (chồng nhau OK), độ dài chuỗi periodic (n - pi[n-1] chia hết n).
+// "đặt pattern vào text, ngăn cách" → tìm pattern qua s + '#' + p rồi lấy pi cuối.
 vi piFunction(const string& s) {
     vi pi(sz(s));
     rep(i, 1, sz(s)) {
@@ -43,13 +41,9 @@ vi kmpSearch(const string& t, const string& p) {
 
 **Mục đích:** `z[i]` = độ dài chuỗi con chung lớn nhất của `s` và `s[i..]` — tìm pattern, tính chuỗi con chung.
 
-**Ý tưởng / Observation:**
-- $z[i] \ge z[i-1] - 1$ → dùng biến `l, r` (đoạn Z rightmost) tính $O(1)$ mỗi vị trí.
-- Pattern match: `s = p + '#' + t`, `z[sz(p)+1+i] == sz(p)` → occur tại i (giống KMP nhưng z của text).
-- Nhận ra: "chuỗi con chung của s với mọi hậu tố" / "đếm vị trí mà z == k" → Z.
-
 **Điều kiện sử dụng:**
 - $O(n)$ mỗi chuỗi; không dùng khi query nhiều pattern.
+- Nhận ra: "chuỗi con chung của s với mọi hậu tố" / "đếm vị trí mà z == k" → Z.
 
 **Độ phức tạp:**
 - Time: $O(n)$
@@ -59,6 +53,7 @@ vi kmpSearch(const string& t, const string& p) {
 
 ```cpp
 // id: zfunc
+// z[i] ≥ z[i-1] - 1 → dùng biến l, r (đoạn Z rightmost) tính O(1) mỗi vị trí. Pattern match: s = p + '#' + t, z[sz(p)+1+i] == sz(p) → occur tại i.
 vi zFunction(const string& s) {
     int n = sz(s);
     vi z(n);
@@ -75,11 +70,6 @@ vi zFunction(const string& s) {
 
 **Mục đích:** Với mọi vị trí, bán kính palindrome lớn nhất (lẻ & chẵn) — tìm palindrome dài nhất, đếm palindrome con.
 
-**Ý tưởng / Observation:**
-- `p[1][i]` = bán kính PALINDROME LẺ tâm tại i (kể cả tâm); `p[0][i]` = bán kính chẵn (tâm giữa i-1, i).
-- Chuỗi sau khi chèn `#` → mỗi palindrome thành lẻ → dùng biến `l, r` rightmost như Z.
-- Bài "đảo chuỗi/conpoly" → đếm = $\sum p[0][i] + p[1][i]$.
-
 **Điều kiện sử dụng:**
 - Chuỗi `char` bất kỳ (không null). Kết quả `p[1]` = số ký tự mỗi bên (kể cả tâm).
 
@@ -91,7 +81,8 @@ vi zFunction(const string& s) {
 
 ```cpp
 // id: manacher
-// pair(p0, p1): p0 = bán kính chẵn (tâm giữa i-1/i), p1 = bán kính lẻ tâm i
+// pair(p0, p1): p0 = bán kính chẵn (tâm giữa i-1/i), p1 = bán kính lẻ tâm i.
+// chuỗi sau khi chèn '#' → mọi palindrome thành lẻ → dùng biến l, r rightmost như Z. Đếm palindrome con = Σ p0[i] + p1[i].
 pair<vi, vi> manacher(const string& s) {
     int n = sz(s);
     vi p1(n), p0(n);
@@ -114,13 +105,9 @@ pair<vi, vi> manacher(const string& s) {
 
 **Mục đích:** So sánh nhanh 2 chuỗi con bằng nhau $O(1)$ — đếm distinct substrings, chuỗi xoay, tìm pattern nhiều vị trí.
 
-**Ý tưởng / Observation:**
-- $h[r] = h[l] \cdot B^{r-l} + (s[l..r)) \bmod 2^{64}$ (unsigned) — nhanh, đủ cho hầu hết bài.
-- Chống hack: base ngẫu nhiên + mod đơn (1e9+7/9) hoặc double hash (2 mod) → chống test đối kháng.
-- Chuỗi xoay: `s+s`, substring `len n` → hash compare $O(n)$.
-
 **Điều kiện sử dụng:**
 - Base `B` nên ≥ alphabet size, ngẫu nhiên `128..255`; $h[0] = 0$ (chuỗi rỗng). `int` → chuyển `ll` để tránh tràn khi nhân.
+- Chống hack: base ngẫu nhiên + mod đơn (1e9+7/9) hoặc double hash (2 mod) → chống test đối kháng. Chuỗi xoay: `s+s`, substring `len n` → hash compare.
 
 **Độ phức tạp:**
 - Time: $O(n)$ build, $O(1)$ query
@@ -130,6 +117,7 @@ pair<vi, vi> manacher(const string& s) {
 
 ```cpp
 // id: hash
+// h[r] = h[l]·B^(r-l) + s[l..r) mod 2^64 (unsigned) — nhanh, đủ cho hầu hết bài.
 typedef unsigned long long ull;
 struct RollingHash {
     const ull B = 911382323;  // base ngẫu nhiên
@@ -152,13 +140,9 @@ struct RollingHash {
 
 **Mục đích:** Lưu tập chuỗi, tìm prefix/count — autocomplete, kiểm tra tồn tại.
 
-**Ý tưởng / Observation:**
-- Mảng tĩnh `nxt[v][26]` với `v` = số node ≤ tổng độ dài chuỗi — $O(1)$/phép, không pointer.
-- Bài "đếm số chuỗi có prefix p" → duyệt node của p, trả `cnt[node]`.
-- Nếu chữ thường/không thường → `alpha = 26`, `first = 'a'` — đổi theo input.
-
 **Điều kiện sử dụng:**
 - Alphabet nhỏ ($\alpha \le 26$); nếu $|\Sigma|$ lớn → map / hash per node.
+- Bài "đếm số chuỗi có prefix p" → duyệt node của p, trả `cnt[node]`. Đổi `alpha`/`first` theo input.
 
 **Độ phức tạp:**
 - Time: $O(L)$ insert/search (L = độ dài chuỗi)
@@ -168,6 +152,7 @@ struct RollingHash {
 
 ```cpp
 // id: trie
+// mảng tĩnh nxt[v][26] với v = số node ≤ tổng độ dài chuỗi — O(1)/phép, không pointer.
 // cnt[v] = số chuỗi ĐI QUA node v (prefix count); end[v] = số chuỗi KẾT THÚC tại v
 // instance ~10MB (mảng tĩnh) → khai báo global
 struct Trie {
@@ -210,14 +195,9 @@ struct Trie {
 
 **Mục đích:** Sắp thứ tự mọi hậu tố; chuỗi con chung lớn nhất 2 hậu tố — distinct substrings, chuỗi con chung, palindrome.
 
-**Ý tưởng / Observation:**
-- `sa[0]` = "" (suffix rỗng, sentinel `\0` cuối); sort $O(n \log n)$ bằng 2 key `(rank[i], rank[i+k])`.
-- `lcp[i]` = LCP(sa[i], sa[i-1]) ($O(n)$ bằng Kawaguchi/ Kasai).
-- **Distinct substrings:** $\frac{n(n+1)}{2} - \sum lcp[i]$.
-- Bài "chuỗi con chung dài nhất của 2 mảng con" / "chuỗi con có mặt $\ge k$ lần" → suffix array.
-
 **Điều kiện sử dụng:**
 - Input `string` có sentinel `\0` (KACTL tự thêm). Alphabet `char` bất kỳ.
+- Bài "chuỗi con chung dài nhất của 2 mảng con" / "chuỗi con có mặt $\ge k$ lần" → suffix array.
 
 **Độ phức tạp:**
 - Time: $O(n \log n)$ build sa, $O(n)$ lcp
@@ -227,6 +207,7 @@ struct Trie {
 
 ```cpp
 // id: suffixarray
+// sort O(n log n) bằng 2 key (rank[i], rank[i+k]); sa[0] = suffix rỗng (sentinel \0 cuối). lcp[i] = LCP(sa[i], sa[i-1]) O(n) bằng Kasai.
 struct SuffixArray {
     string s;
     vi sa, lcp;
@@ -278,13 +259,9 @@ struct SuffixArray {
 
 **Mục đích:** Tìm TẤT CẢ pattern cùng lúc trong text — Q pattern, tổng độ dài M, text N.
 
-**Ý tưởng / Observation:**
-- Trie + fail link (như KMP prefix func) → duyệt text 1 lần, mỗi node 1 bước.
-- `find(s, patterns)` trả về danh sách `(k, endpos)` — pattern k kết thúc ở endpos.
-- Bài "đếm số lần mỗi pattern xuất hiện" / "chuỗi con KHÔNG chứa pattern nào" → Aho.
-
 **Điều kiện sử dụng:**
 - Alphabet $\alpha = 26$ (đổi `first` nếu chữ thường); $M \lesssim 10^6$. Pattern trùng lặp OK.
+- Bài "đếm số lần mỗi pattern xuất hiện" / "chuỗi con KHÔNG chứa pattern nào" → Aho.
 
 **Độ phức tạp:**
 - Time: $O(M \times α + N \times matches)$
@@ -294,6 +271,7 @@ struct SuffixArray {
 
 ```cpp
 // id: aho
+// trie + fail link (như KMP prefix func) → duyệt text 1 lần, mỗi node 1 bước. find trả (patternIdx, endPos).
 struct AhoCorasick {
     enum { alpha = 26, first = 'A' };
     struct Node {
@@ -350,12 +328,9 @@ struct AhoCorasick {
 
 **Mục đích:** Chuỗi xoay LEXICOGRAPHIC nhỏ nhất (vòng tròn) — tối ưu hóa chuỗi vòng, so sánh chuỗi xoay.
 
-**Ý tưởng / Observation:**
-- Booth: 2 con trỏ `i, j`, step `k` — so sánh ký tự, nhảy `i/j` khi mất thế. $O(n)$.
-- Bài "chuỗi con nhỏ nhất của chuỗi vòng" / "xếp chuỗi vòng sao lexicographically min" → min rotation.
-
 **Điều kiện sử dụng:**
 - `s` là chuỗi thường (không cần `\0`). Kết quả = index bắt đầu (0-based).
+- Bài "chuỗi con nhỏ nhất của chuỗi vòng" / "xếp chuỗi vòng sao lexicographically min" → min rotation.
 
 **Độ phức tạp:**
 - Time: $O(n)$
@@ -365,6 +340,7 @@ struct AhoCorasick {
 
 ```cpp
 // id: minrotation
+// Booth: 2 con trỏ i, j, step k — so sánh ký tự, nhảy i/j khi mất thế. O(n).
 int minRotation(const string& s) {
     int n = sz(s), i = 0, j = 1, k = 0;
     while (i < n && j < n && k < n) {

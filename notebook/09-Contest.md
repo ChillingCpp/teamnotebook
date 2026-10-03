@@ -4,13 +4,9 @@
 
 **Mục đích:** Phép toán modulo dùng lại mọi nơi: `addmod`, `submod`, `mulmod`, `divmod` — tránh viết lại mỗi bài.
 
-**Ý tưởng / Observation:**
-- `divmod(a, b) = mulmod(a, invmod(b))` — chỉ chia được khi $\gcd(b, mod) = 1$ (mod nguyên tố → Fermat).
-- `mulmod` bằng `__int128` khi $mod^2 > 2^{63}$; $mod \le 2^{31}$ thì `ll` đủ.
-- Ghi `((a % mod) + mod) % mod` khi a có thể âm — dùng `normmod`.
-
 **Điều kiện sử dụng:**
 - `mod` là hằng (khuyên: `const ll MOD`). Với mod bất kỳ (không nguyên tố) → dùng `euclid` (mục Number theory).
+- Chỉ chia được khi $\gcd(b, mod) = 1$ (mod nguyên tố → Fermat: `divmod(a,b) = mulmod(a, invmod(b))`).
 
 **Độ phức tạp:**
 - Time: $O(1)$ mỗi phép; `invmod` $O(\log mod)$
@@ -33,13 +29,9 @@ ll divmod(ll a, ll b) { return mulmod(a, modpow(b, MOD - 2, MOD)); }  // mod ngu
 
 **Mục đích:** Chia mảng thành $\sqrt{n}$ block — update đoạn / query tổng nhanh hơn quét hết khi có NHIỀU query trộn lẫn.
 
-**Ý tưởng / Observation:**
-- Mỗi block lưu `val[block]` (lazy) + tổng — `add(l, r, x)`: block đủ thì cộng lazy $O(1)$, block rìa quét $O(√n)$.
-- Nhận ra: "N = Q = 10^5, update đoạn + query tổng bất kỳ" mà không muốn segtree → sqrt decomp (code ngắn, hằng số tốt).
-- "Batch query" (offline gộp query theo block) → Mo (mục 04) — sqrt decomp ở đây là PHIÊN BẢN ONLINE.
-
 **Điều kiện sử dụng:**
 - $B = \lceil \sqrt{n} \rceil$; block index = `i / B`; số block = $\frac{n}{B} \approx \sqrt{n}$. Query phức tạp nhất $O(√n)$.
+- Nhận ra: "N = Q = 10^5, update đoạn + query tổng bất kỳ" mà không muốn segtree → sqrt decomp (code ngắn, hằng số tốt). "Batch query" offline gộp theo block → Mo (mục 04) — sqrt decomp ở đây là PHIÊN BẢN ONLINE.
 
 **Độ phức tạp:**
 - Time: $O(√n)$ mỗi update/query; $O(n)$ build
@@ -49,6 +41,7 @@ ll divmod(ll a, ll b) { return mulmod(a, modpow(b, MOD - 2, MOD)); }  // mod ngu
 
 ```cpp
 // id: sqrtdecomp
+// mỗi block lưu val[block] (lazy) + tổng — add(l, r, x): block đủ thì cộng lazy O(1), block rìa quét O(√n).
 struct SqrtDecomp {
     int n, B, nb;
     vector<ll> a, blockSum, blockAdd;
@@ -91,13 +84,9 @@ struct SqrtDecomp {
 
 **Mục đích:** Quy ước làm bài nhanh: đọc kỹ → viết brute → tối ưu; checklist các dạng bài hay gặp.
 
-**Ý tưởng / Observation:**
-- **Ad hoc/constructive:** "luôn có lời giải luôn luôn?" → thử case nhỏ nhất, tìm invariant, xây dựng từng bước (greedy chứng minh bằng trao đổi). Nếu bất khả thi → tìm điều kiện duy nhất.
-- **Interactive:** flush sau mỗi output (`cout << endl` hoặc `cout.flush()`); đọc cho đến khi judge trả `end`/`-1`; KHÔNG assume thứ tự.
-- Dạng bài "đúng/sai nhanh" → xem có thể lùi từ đáp án không (binary search + check).
-
 **Điều kiện sử dụng:**
-- Interactive: `cin.tie(0)` để không tie output (flush chủ động thay vì cin tied).
+- Interactive: `cin.tie(0)` để không tie output (flush chủ động thay vì cin tied). Flush sau mỗi output; đọc đến khi judge trả `end`/`-1`; KHÔNG assume thứ tự.
+- Dạng bài "đúng/sai nhanh" → xem có thể lùi từ đáp án không (binary search + check).
 
 **Độ phức tạp:**
 - — (checklist, không code)
@@ -118,18 +107,16 @@ Ad-hoc workflow:
     2. Brute $O(2^n)$ / $O(n!)$ cho n nhỏ → tìm pattern
     3. Suy luận invariant / bất biến / điều kiện đủ
     4. Tính edge cases: n = 0, 1, tất cả bằng nhau, đã sorted
+    5. Constructive: thử case nhỏ nhất, xây từng bước (greedy chứng minh bằng trao đổi); bất khả thi → tìm điều kiện duy nhất
 
 
 ## Fractional cascading (tìm kiếm nhiều danh sách)
 
 **Mục đích:** Tìm phần tử trong K danh sách đã sort mỗi lần $O(\log n)$ → $O(\log n + K)$ sau lần đầu — bài "đếm điểm chung / interpolate index".
 
-**Ý tưởng / Observation:**
-- Precompute `mid[]` chuyển index từ danh sách i sang i+1 (lower_bound 1 lần) — query chỉ đi xuống.
-- Nhận ra: "K danh sách, mỗi query tìm trong TẤT CẢ" → fractional cascading, hoặc gộp (nếu K nhỏ → linear search binary đã đủ).
-
 **Điều kiện sử dụng:**
 - Danh sách static (không thêm/xóa). Build $O(Σ|Li|)$, query $O(K + \log)$.
+- Nhận ra: "K danh sách, mỗi query tìm trong TẤT CẢ" → fractional cascading (K nhỏ → binary từng list đã đủ).
 
 **Độ phức tạp:**
 - Time: $O(Σ|Li|)$ build, $O(K + \log n)$ query

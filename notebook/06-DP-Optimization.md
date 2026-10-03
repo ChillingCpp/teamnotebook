@@ -4,13 +4,9 @@
 
 **Mục đích:** Tìm min/max giá trị thỏa điều kiện đơn điệu (`check(x)` đúng/fail liên tục) — bài "tìm nhỏ nhất sao cho luôn kịp".
 
-**Ý tưởng / Observation:**
-- Định dạng chuẩn: `check(mid)` đúng → thử nhỏ hơn (đưa `r = mid`), sai → `l = mid+1`. Kiểm tra 2 trường hợp biên `l`, `r+1` nếu không chắc.
-- Thấy "đáp án nằm trong [A, B] và có tính chất: nếu x làm được thì y cũng làm được (đơn điệu)" → TKNP.
-- Số thực: lặp 80-100 lần (không dùng `while(l<r)` vì sai số) — hoặc `while (r-l > 1e-7)`.
-
 **Điều kiện sử dụng:**
 - `check` PHẢI đơn điệu theo x. Không đơn điệu → xem ternary search / DP.
+- Số thực: lặp 80-100 lần (không dùng `while(l<r)` vì sai số) — hoặc `while (r-l > 1e-7)`.
 
 **Độ phức tạp:**
 - Time: $O(\log(range) \cdot cost(check))$
@@ -20,7 +16,8 @@
 
 ```cpp
 // id: binsearch
-// trả về l nhỏ nhất có check(l) == true (kiểm tra cả biên nếu cần)
+// trả về l nhỏ nhất có check(l) == true (kiểm tra cả biên nếu cần).
+// check(mid) đúng → r = mid, sai → l = mid+1. Kiểm tra 2 biên l, r+1 nếu không chắc. "Đáp án trong [A,B] và đơn điệu" → TKNP.
 ll binSearch(ll l, ll r, auto check) {
     while (l < r) {
         ll m = l + (r - l) / 2;
@@ -36,11 +33,6 @@ ll binSearch(ll l, ll r, auto check) {
 
 **Mục đích:** Tìm cực trị của hàm đơn điệu đỉnh (unimodal): 1 đỉnh max/min trên đoạn.
 
-**Ý tưởng / Observation:**
-- Đơn điệu đỉnh: tăng rồi giảm (max) hoặc giảm rồi tăng (min) — KHÔNG có nhiều đỉnh cục bộ.
-- Số nguyên: `mid1 = l + (r-l)/3`, `mid2 = r - (r-l)/3`; so `f(mid1)` vs `f(mid2)` → cắt 1/3 đoạn mỗi bước.
-- Số thực: golden section (tỉ lệ vàng) tiết kiệm 1 phép hàm/so sánh; hoặc bắn thẳng binary search trên đạo hàm dấu (nếu tính được).
-
 **Điều kiện sử dụng:**
 - Hàm CHỈ có 1 cực trị trên đoạn. Đa đỉnh → binary search theo đạo hàm / D&C / DP.
 - Sai số: dừng khi `r - l < eps` (số thực), hoặc đến khi `l == r` (số nguyên, dùng `long long`).
@@ -53,7 +45,8 @@ ll binSearch(ll l, ll r, auto check) {
 
 ```cpp
 // id: ternary
-// hàm số thực unimodal, trả về x cực trị (đổi < thành > để tìm max)
+// hàm số thực unimodal, trả về x cực trị (đổi < thành > để tìm max).
+// số nguyên: mid1 = l + (r-l)/3, mid2 = r - (r-l)/3; so f(mid1) vs f(mid2) → cắt 1/3 đoạn mỗi bước. Số thực: golden section tiết kiệm 1 phép f mỗi vòng.
 double ternarySearch(double l, double r, auto f) {
     while (r - l > 1e-7) {
         double m1 = l + (r - l) / 3, m2 = r - (r - l) / 3;
@@ -84,14 +77,9 @@ double golden(double a, double b, auto f) {
 
 **Mục đích:** Truy vấn $\min/\max (a \cdot x + b)$ nhanh — DP với hàm tuyến tính $dp[i] = \min(dp[j] + a[i] \cdot b[j] + c[i])$.
 
-**Ý tưởng / Observation:**
-- `LineContainer` insert + query: $O(\log n)$ / $O(\log n)$ — slope tăng dần + query x tăng dần → $O(1)$ deque (xem ghi chú).
-- **Nhận ra bài:** DP có dạng $cost(i,j) = a_i \cdot b_j + c_i$ với $a_i$ đơn điệu → CHT.
-- Nếu insert theo slope NGẪU NHIÊN → dùng multiset / Li Chao tree (đúng $O(\log^2)$ / $O(\log)$).
-- Sản phẩm $a_i \cdot b_j$ với `ll` tràn → check cận ($\le 10^{18}$).
-
 **Điều kiện sử dụng:**
 - `m.x` tăng dần (query) → `LineContainer` hoạt động $O(\log n)$ bình thường; khi insert slope giảm dần, `long double` so sánh vẫn ổn.
+- **Nhận ra bài:** DP có dạng $cost(i,j) = a_i \cdot b_j + c_i$ với $a_i$ đơn điệu → CHT. Insert slope NGẪU NHIÊN → dùng multiset / Li Chao tree.
 
 **Độ phức tạp:**
 - Time: $O(\log n)$ insert, $O(\log n)$ query (thêm dòng / truy vấn)
@@ -101,6 +89,7 @@ double golden(double a, double b, auto f) {
 
 ```cpp
 // id: cht
+// LineContainer insert + query: O(log n)/O(log n) — slope tăng dần + query x tăng dần → O(1) deque. Sản phẩm a_i·b_j với ll tràn → check cận (≤ 1e18).
 struct Line {
     mutable ll k, m, p;  // y = k*x + m, p = giao điểm với dòng trước
     bool operator<(const Line& o) const { return k < o.k; }
@@ -137,14 +126,10 @@ struct LineContainer : multiset<Line, less<>> {
 
 **Mục đích:** Tính $dp[i] = \min_{lo(i) \le k < hi(i)} (f(i, k))$ khi điểm tối ưu `k` đơn điệu TĂNG theo i — gộp $O(N^2)$ → $O((N + range) \log N)$.
 
-**Ý tưởng / Observation:**
-- Điều kiện: `k*` (argmin) không giảm khi i tăng → D&C chia đôi, mỗi tầng duyệt tổng $O(range)$.
-- **Nhận ra bài:** DP `dp[i][k]` với `k` đơn điệu (opt monotone) mà không thuộc dạng Knuth/CHT → thử D&C.
-- `rec(L, R, LO, HI)` — tìm `mid` trong `[LO, HI)` rồi đệ quy trái/phải với biên cắt theo `best.k`.
-
 **Điều kiện sử dụng:**
 - `lo(i), hi(i)` — hàm giới hạn (thường `lo(i) = 0`, `hi(i) = n`). `f(i,k)` $O(1)$.
 - Bài nhiều layer: mỗi layer là một `DCDP` mới — `f` capture mảng layer trước (đã tính xong toàn bộ).
+- **Nhận ra bài:** DP `dp[i][k]` với `k` đơn điệu (opt monotone) mà không thuộc dạng Knuth/CHT → thử D&C.
 
 **Độ phức tạp:**
 - Time: $O((N + (hi-lo)) \log N)$
@@ -154,7 +139,8 @@ struct LineContainer : multiset<Line, less<>> {
 
 ```cpp
 // id: dcdp
-// dp[i] = min_{lo(i) ≤ k < hi(i)} f(i, k) — k* đơn điệu TĂNG theo i
+// dp[i] = min_{lo(i) ≤ k < hi(i)} f(i, k) — k* đơn điệu TĂNG theo i.
+// k* (argmin) không giảm khi i tăng → D&C chia đôi, mỗi tầng duyệt tổng O(range). rec(L, R, LO, HI) — tìm mid trong [LO, HI) rồi đệ quy trái/phải với biên cắt theo best.k.
 struct DCDP {
     vector<ll> dp;
     vi bestK;
@@ -186,13 +172,9 @@ struct DCDP {
 
 **Mục đích:** Rút gọn phạm vi k của DP $dp[i][j] = \min_{i<k<j}(dp[i][k]+dp[k][j]) + C[i][j]$ — $O(N^2)$ thay vì $O(N^3)$.
 
-**Ý tưởng / Observation:**
-- Điều kiện: **quadrangle inequality** + `C` đơn điệu → $opt[i][j-1] \le opt[i][j] \le opt[i+1][j]$.
-- Thường gặp: $C[i][j] = C[i][j-1] + C[i+1][j] + w[i][j]$, hoặc tổng chi phí chuỗi (matrix chain) — xem ghi chú DP.
-- `dp[i][j]` với $j-i \ge 2$; $dp[i][i] = 0$, `dp[i][i+1]` = base.
-
 **Điều kiện sử dụng:**
 - Phải kiểm tra 2 bất đẳng thức (quadrangle): $f(b,c) \le f(a,d)$ và $f(a,c)+f(b,d) \le f(a,d)+f(b,c)$ với $a \le b \le c \le d$.
+- Thường gặp: $C[i][j] = C[i][j-1] + C[i+1][j] + w[i][j]$, hoặc tổng chi phí chuỗi (matrix chain).
 
 **Độ phức tạp:**
 - Time: $O(N^2)$
@@ -204,6 +186,7 @@ struct DCDP {
 // id: knuth
 // dp[i][j] = min_{i <= k < j} dp[i][k] + dp[k+1][j] + w(i, j)
 // Đòi hỏi: w thỏa quadrangle inequality (xem mục Điều kiện), opt đơn điệu.
+// quadrangle inequality + C đơn điệu → opt[i][j-1] ≤ opt[i][j] ≤ opt[i+1][j]. dp[i][j] với j-i ≥ 2; dp[i][i] = 0, dp[i][i+1] = base.
 struct KnuthDP {
     int n;
     vector<vector<ll>> dp;
@@ -236,13 +219,9 @@ struct KnuthDP {
 
 **Mục đích:** Tính $F[i] = \sum_{j \subseteq i} f[j]$ cho mọi mask (sum over subsets) — $O(N \log N)$ thay vì $O(3^N)$.
 
-**Ý tưởng / Observation:**
-- `for b, for i, if i có bit b: F[i] += F[i ^ (1<<b)]` — duyệt bit ngoài, i tăng dần → tích lũy qua bit.
-- Bài "tổng các f[j] với j là subset của i" → SOS. Bài "xor transform" → dùng FST (FWHT) — xem mục FST.
-- $F[i] = \sum_{i \subseteq j} f[j]$ (superset): đổi hướng `if (!(i>>b & 1)) F[i] += F[i | 1<<b]`.
-
 **Điều kiện sử dụng:**
 - $N = 2^k$, `f` là mảng `ll`. $k \le 20$ → OK (mảng 10^6 phần tử).
+- Bài "tổng các f[j] với j là subset của i" → SOS. Bài "xor transform" → dùng FST (FWHT). Superset: đổi hướng `if (!(i>>b & 1)) F[i] += F[i | 1<<b]`.
 
 **Độ phức tạp:**
 - Time: $O(N \log N)$
@@ -252,6 +231,7 @@ struct KnuthDP {
 
 ```cpp
 // id: sos
+// for b, for i, if i có bit b: F[i] += F[i ^ (1<<b)] — duyệt bit ngoài, i tăng dần → tích lũy qua bit.
 void sos(vector<ll>& F) {  // F[i] = Σ_{j ⊆ i} f[j] — F ban đầu = f
     int n = sz(F);
     for (int b = 0; (1 << b) < n; ++b)
@@ -265,13 +245,9 @@ void sos(vector<ll>& F) {  // F[i] = Σ_{j ⊆ i} f[j] — F ban đầu = f
 
 **Mục đích:** LIS độ dài / dãy con đơn điệu (tăng chặt hoặc không giảm) — $O(n \log n)$.
 
-**Ý tưởng / Observation:**
-- `res` là dãy kết thúc min của LIS length tương ứng → `lower_bound` thay `upper_bound` cho tăng chặt (đổi để không giảm).
-- Truy vết: `prev[i]` lưu chỉ số trước → đảo ngược từ cuối. Không cần truy vết → chỉ cần `sz(res)`.
-- Bài "số dãy con đơn điệu" → $dp[i] = \sum dp[j]$ (sum trên segtree theo giá trị), không phải LIS.
-
 **Điều kiện sử dụng:**
 - `S` là mảng `vector<I>` (I có `operator<`). `S` rỗng → trả `{}`.
+- Bài "số dãy con đơn điệu" → $dp[i] = \sum dp[j]$ (sum trên segtree theo giá trị), không phải LIS.
 
 **Độ phức tạp:**
 - Time: $O(n \log n)$
@@ -281,6 +257,7 @@ void sos(vector<ll>& F) {  // F[i] = Σ_{j ⊆ i} f[j] — F ban đầu = f
 
 ```cpp
 // id: lis
+// res = dãy kết thúc min của LIS length tương ứng → lower_bound cho tăng chặt (đổi thành upper_bound để không giảm). Truy vết: prev[i] lưu chỉ số trước → đảo ngược từ cuối.
 vi lis(const vector<ll>& S) {  // trả về CHỈ SỐ của LIS (tăng chặt)
     if (S.empty()) return {};
     vi prev(sz(S));
@@ -305,11 +282,6 @@ vi lis(const vector<ll>& S) {  // trả về CHỈ SỐ của LIS (tăng chặt)
 
 **Mục đích:** DP trên tập con (TSP, matching trên mask, đếm) — các pattern vòng lặp chuẩn.
 
-**Ý tưởng / Observation:**
-- `for mask = 0 .. (1<<n)-1` rồi `for (int sub = mask; sub; sub = (sub-1) & mask)` duyệt mọi subset.
-- TSP: $dp[mask][v] = \min(dp[mask \oplus (1 \ll v)][u] + c[u][v])$ — $O(2^n \cdot n^2)$, $n \le 20$.
-- "Gán N việc cho N người" trên mask: `dp[mask] = giá trị tốt nhất khi đã gán các bit trong mask`.
-
 **Điều kiện sử dụng:**
 - $n \le 20$ (2^n), $n \le 25$ nếu DP nhanh. Đếm subset con → $O(3^n)$.
 
@@ -323,6 +295,7 @@ vi lis(const vector<ll>& S) {  // trả về CHỈ SỐ của LIS (tăng chặt)
 // id: bitmask
 // duyệt mọi subset khác rỗng của mask:
 //   for (int sub = mask; sub; sub = (sub - 1) & mask) { ... }
+// TSP: dp[mask][v] = min(dp[mask ^ (1<<v)][u] + c[u][v]) — O(2^n·n^2), n ≤ 20. "Gán N việc cho N người": dp[mask] = giá trị tốt nhất khi đã gán các bit trong mask.
 // duyệt mọi mask 0..2^n-1:
 //   rep(mask, 0, 1 << n) { ... }
 // TSP DP:
@@ -335,14 +308,9 @@ vi lis(const vector<ll>& S) {  // trả về CHỈ SỐ của LIS (tăng chặt)
 
 **Mục đích:** $Q$ truy vấn cùng kiểu, mỗi truy vấn cần binary search trên đáp án $[0, N)$ mà hàm kiểm tra chỉ chạy được OFFLINE (1 lượt quét DS) — gộp $Q \cdot \log N$ lần chạy DS còn $\log N$ lần.
 
-**Ý tưởng / Observation:**
-- Mỗi vòng: mọi truy vấn chưa chốt lấy mid = $\lfloor(lo+hi)/2\rfloor$, gom tất cả $(mid, id)$ rồi chạy DS MỘT LẦN cho tất cả (thay vì mỗi query một lần) — đó là toàn bộ lợi ích của kĩ thuật.
-- `batch(ids, mids)` thường viết: gom task → sort theo mid → quét DS 1 lượt → trả kết quả từng task.
-- Duy trì bất biến $ans[i] \in [lo_i, hi_i]$ (kín 2 biên): $check = true$ → $lo = mid + 1$, ngược lại $hi = mid$; dừng khi mọi $lo = hi$ = đáp án.
-- Nhận ra: "mỗi query 1 binary search mà check chỉ làm được theo lô/offline" → parallel binary search (giống offline nhưng theo chiều binary search).
-
 **Điều kiện sử dụng:**
 - Kiểm tra $(i, mid)$ phải OFFLINE / gộp lô được (DS clear() mỗi vòng là đủ). Đáp án trong $[0, hi0)$.
+- Nhận ra: "mỗi query 1 binary search mà check chỉ làm được theo lô/offline" → parallel binary search.
 
 **Độ phức tạp:**
 - Time: $O\big(\log N \cdot T_{batch}\big)$ — $T_{batch}$ = cost 1 vòng quét DS cho mọi query (thường $O((n + q) \log n)$).
@@ -353,6 +321,7 @@ vi lis(const vector<ll>& S) {  // trả về CHỈ SỐ của LIS (tăng chặt)
 ```cpp
 // id: pbs
 // Parallel Binary Search — mỗi vòng gọi batch() MỘT lần cho TẤT CẢ query còn chờ.
+// mỗi vòng: mọi truy vấn chưa chốt lấy mid = ⌊(lo+hi)/2⌋, gom (mid, id) rồi chạy DS MỘT LẦN cho tất cả. Duy trì ans[i] ∈ [lo_i, hi_i]: check = true → lo = mid+1, ngược lại hi = mid; dừng khi mọi lo = hi.
 // batch(ids, mids) trả kq[j] = true ⇔ đáp án của ids[j] > mids[j]  (STRICT —
 // code tính "mid đầu tiên mà kq = false": với >= thì kết quả lệch +1).
 struct PBS {

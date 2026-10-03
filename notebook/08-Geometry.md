@@ -4,11 +4,6 @@
 
 **Mục đích:** Cấu trúc nền cho mọi hình học 2D: phép toán vector, cross/dot, xoay, khoảng cách.
 
-**Ý tưởng / Observation:**
-- `cross(a, b)` > 0 → b quay NGƯỢC kim đồng hồ so với a (left turn) — nền của orient test, hull.
-- `dot` > 0 → góc nhọn; `dist2()` = bình phương khoảng cách — so sánh bằng `dist2` khi nào có thể (tránh `sqrt`).
-- `perp()` = xoay +90°, `unit()` = vector đơn vị — dựng đường trung tuyến, pháp tuyến.
-
 **Điều kiện sử dụng:**
 - `T = double` (phép chia/nhân có `dist()`), `T = long long` (chỉ dùng cross/dot int — cẩn thận tràn với tọa độ $\le 10^9$ → cross ~ $10^{18}$ OK borderline).
 
@@ -20,6 +15,8 @@
 
 ```cpp
 // id: point
+// cross(a,b) > 0 → b quay NGƯỢC kim đồng hồ so với a (left turn) — nền của orient test, hull. dot > 0 → góc nhọn.
+// dist2() = bình phương khoảng cách — so sánh bằng dist2 khi nào có thể (tránh sqrt). perp() = xoay +90°, unit() = vector đơn vị.
 typedef long double D;  // hoặc ll nếu chỉ dùng cross/dot
 template <class T>
 struct Point {
@@ -54,10 +51,6 @@ typedef Point<ll> Pl;
 
 **Mục đích:** Kiểm tra 3 điểm quay theo chiều nào (`sideOf`), điểm có nằm trên đoạn (`onSegment`) — nền của giao đoạn, point-in-polygon.
 
-**Ý tưởng / Observation:**
-- $\operatorname{cross}(b-a, c-a)$: > 0 → trái (ccw), < 0 → phải, == 0 → thẳng hàng (collinear).
-- `onSegment`: thẳng hàng + `min(a.x,b.x) <= c.x <= max(...)` với cả x, y — không dùng epsilon nếu tọa độ nguyên.
-
 **Điều kiện sử dụng:**
 - `D` double → epsilon (`> 1e-12`); `ll` → so sánh chính xác (cross với |tọa độ| $\le 10^9$).
 
@@ -69,6 +62,7 @@ typedef Point<ll> Pl;
 
 ```cpp
 // id: onsegment
+// cross(b-a, c-a): > 0 → trái (ccw), < 0 → phải, == 0 → thẳng hàng (collinear).
 int sideOf(Pd a, Pd b, Pd c) {  // c so với đoạn ab: 1 = trái, -1 = phải, 0 = thẳng hàng
     D v = (b - a).cross(c - a);
     return (v > 1e-12) - (v < -1e-12);
@@ -85,12 +79,8 @@ bool onSegment(Pd s, Pd e, Pd p) {  // p trên đoạn [s,e] (kể cả đầu m
 
 **Mục đích:** Khoảng cách từ điểm p đến đường thẳng qua a,b (`lineDist`), đến đoạn [s,e] (`segDist`).
 
-**Ý tưởng / Observation:**
-- `lineDist` = $\frac{|\operatorname{cross}(b-a, p-a)|}{|b-a|}$ — tuyệt đối của diện tích / đáy.
-- `segDist`: chiếu p lên đoạn, `t = clamp(dot/|e-s|^2, 0, 1)` — nếu chiếu nằm trong đoạn → khoảng cách vuông góc, không thì khoảng cách đến đầu mút gần nhất.
-- Bài "tìm cặp điểm gần nhất" → dùng sweep line (mục Closest pair) thay vì $O(n^2)$.
-
 **Điều kiện sử dụng:**
+- Bài "tìm cặp điểm gần nhất" → dùng sweep line (mục Closest pair) thay vì $O(n^2)$.
 - `a == b` → nan (đường thẳng suy biến) — check trước nếu input không chắc chắn.
 
 **Độ phức tạp:**
@@ -101,6 +91,8 @@ bool onSegment(Pd s, Pd e, Pd p) {  // p trên đoạn [s,e] (kể cả đầu m
 
 ```cpp
 // id: linedist
+// lineDist = |cross(b-a, p-a)| / |b-a| — tuyệt đối của diện tích / đáy.
+// segDist: chiếu p lên đoạn, t = clamp(dot/|e-s|^2, 0, 1) — chiếu trong đoạn → khoảng cách vuông góc, không thì khoảng cách đến đầu mút gần nhất.
 D lineDist(const Pd& a, const Pd& b, const Pd& p) {
     return fabs((D)(b - a).cross(p - a) / (b - a).dist());  // khoảng cách ≥ 0 (khớp doc)
 }
@@ -116,11 +108,6 @@ D segDist(Pd& s, Pd& e, Pd& p) {  // khoảng cách p đến đoạn [s,e]
 
 **Mục đích:** Tìm giao điểm 2 đường thẳng vô hạn (`lineInter`), 2 đoạn thẳng (`segInter`) — kiểm tra chồng lấp.
 
-**Ý tưởng / Observation:**
-- `lineInter`: diện tích tam giác / diện tích → tọa độ giao qua Cramer (2 phương trình 2 ẩn).
-- `segInter`: 4 phép `sideOf` — 2 đoạn chéo nhau nếu mỗi đoạn phân biệt 2 đầu mút đoạn kia; + check `onSegment` cho trường hợp song song trùng.
-- Parallel (`cross == 0`) → không giao hoặc trùng (trả `nullopt` / cần check thủ công).
-
 **Điều kiện sử dụng:**
 - `D = double` → epsilon; `ll` → dùng determinant trực tiếp (không chia).
 
@@ -132,7 +119,9 @@ D segDist(Pd& s, Pd& e, Pd& p) {  // khoảng cách p đến đoạn [s,e]
 
 ```cpp
 // id: seginter
-// giao 2 đường thẳng vô hạn — nullopt nếu song song
+// giao 2 đường thẳng vô hạn — nullopt nếu song song.
+// lineInter: diện tích tam giác / diện tích → tọa độ giao qua Cramer (2 phương trình 2 ẩn).
+// segInter: 4 phép sideOf — 2 đoạn chéo nhau nếu mỗi đoạn phân biệt 2 đầu mút đoạn kia; + check onSegment cho trường hợp song song trùng.
 optional<Pd> lineInter(Pd a, Pd b, Pd c, Pd d) {
     D v = (b - a).cross(d - c);
     if (fabs(v) < 1e-12) return nullopt;
@@ -153,11 +142,6 @@ bool segInter(Pd s1, Pd e1, Pd s2, Pd e2) {
 
 **Mục đích:** Lớp bao lồi của tập điểm — tính chu vi/diện tích hull, bài "điểm nằm ngoài"/"bao tất cả".
 
-**Ý tưởng / Observation:**
-- Sort theo (x, y) rồi build lower + upper — $O(n \log n)$, ngắn, ổn định (so với Graham scan).
-- **Hull gồm tất cả điểm** (kể cả thẳng hàng) → dùng `<= 0` trong check (bỏ collinear); **hull strictly convex** (bỏ collinear) → `< 0`.
-- Hull cần `>= 3` điểm để tính diện tích/đường chéo; input có thể tất cả thẳng hàng → check `sz(hull) < 3`.
-
 **Điều kiện sử dụng:**
 - `T` là `ll` hoặc `double`; điểm trùng → `unique` trước. Hull trả về **ngược kim đồng hồ** (ccw) với `cross <= 0`.
 
@@ -169,7 +153,8 @@ bool segInter(Pd s1, Pd e1, Pd s2, Pd e2) {
 
 ```cpp
 // id: hull
-// hull ccw, loại điểm collinear (đổi <=0 để giữ) — trả {} nếu < 3 điểm distinct
+// hull ccw, loại điểm collinear (đổi <=0 để giữ) — trả {} nếu < 3 điểm distinct.
+// sort theo (x, y) rồi build lower + upper — O(n log n). Hull cần ≥ 3 điểm để tính diện tích/đường chéo; tất cả thẳng hàng → check sz(hull) < 3.
 vector<Pl> hull(vector<Pl> pts) {
     sort(all(pts));
     pts.erase(unique(all(pts)), pts.end());
@@ -195,12 +180,9 @@ vector<Pl> hull(vector<Pl> pts) {
 
 **Mục đích:** Cặp điểm RA XA FUT nhất trên lớp bao lồi (đường kính), chu vi hull, cặp xa nhất.
 
-**Ý tưởng / Observation:**
-- Với hull ccw, `distance(p[i], p[j])` đơn điệu → con trỏ j quay 1 vòng $O(n)$.
-- Bài "tìm cặp điểm xa nhất của tập điểm" → hull trước rồi rotating calipers — $O(n \log n)$.
-
 **Điều kiện sử dụng:**
 - Hull phải là `vector<Pl>` ccw từ mục `hull` (không có điểm trùng). Hull < 3 điểm → tính thủ công.
+- Bài "tìm cặp điểm xa nhất của tập điểm" → hull trước rồi rotating calipers — $O(n \log n)$.
 
 **Độ phức tạp:**
 - Time: $O(n \log n)$ (gồm build hull), $O(n)$ nếu hull có sẵn
@@ -210,6 +192,7 @@ vector<Pl> hull(vector<Pl> pts) {
 
 ```cpp
 // id: hulldiameter
+// với hull ccw, distance(p[i], p[j]) đơn điệu → con trỏ j quay 1 vòng O(n).
 pair<int, int> hullDiameter(const vector<Pl>& S) {  // trả cặp chỉ số (i, j) xa nhất
     if (sz(S) == 1) return {0, 0};
     if (sz(S) == 2) return {0, 1};
@@ -233,10 +216,6 @@ pair<int, int> hullDiameter(const vector<Pl>& S) {  // trả cặp chỉ số (i
 ## Diện tích đa giác
 
 **Mục đích:** Diện tích (signed) đa giác đơn giản, trọng tâm — shoelace formula.
-
-**Ý tưởng / Observation:**
-- $\frac{\sum \operatorname{cross}(P[i], P[i+1])}{2}$ → signed (ccw dương, cw âm). `abs()` để lấy diện tích.
-- Point-in-polygon: cross sign với mọi cạnh (đa giác lồi) hoặc ray casting (bất kỳ) — xem mục inPolygon.
 
 **Điều kiện sử dụng:**
 - Đa giác đơn giản (không tự cắt); đỉnh theo thứ tự (ccw hoặc cw).
@@ -262,13 +241,9 @@ D polygonArea(const vector<Pd>& v) {  // diện tích tuyệt đối, n ≥ 3
 
 **Mục đích:** Kiểm tra điểm có nằm TRONG đa giác (ray casting) hoặc đa giác LỚI (cross test) — $O(n)$ / $O(\log n)$.
 
-**Ý tưởng / Observation:**
-- **Bất kỳ:** bắn tia ngang, đếm cắt đoạn → lẻ = trong (xử lý điểm trên biên trả 0/1 tùy bài).
-- **Lồi:** binary search — kiểm tra 1 tam giác gốc + 2 half-plane ($O(\log n)$) — dùng khi n lớn, query nhiều.
-- Bài "điểm trong/ra" + update → $O(n)$ mỗi query hoặc sweep line.
-
 **Điều kiện sử dụng:**
 - Ray casting: điểm TRÊN biên → undefined (check riêng bằng `onSegment` nếu cần chắc chắn).
+- Đa giác LỒI: binary search — kiểm tra 1 tam giác gốc + 2 half-plane ($O(\log n)$) — dùng khi n lớn, query nhiều.
 
 **Độ phức tạp:**
 - Time: $O(n)$ ray casting; $O(\log n)$ nếu lồi
@@ -278,6 +253,7 @@ D polygonArea(const vector<Pd>& v) {  // diện tích tuyệt đối, n ≥ 3
 
 ```cpp
 // id: inpolygon
+// bắn tia ngang, đếm cắt đoạn → lẻ = trong (điểm trên biên trả 2 — xử lý riêng theo bài).
 int inpolygon(const vector<Pd>& v, Pd p) {  // 1 = trong, 0 = ngoài, 2 = trên biên
     rep(i, 0, sz(v)) {
         Pd a = v[i], b = v[(i + 1) % sz(v)];
@@ -312,12 +288,9 @@ bool inHull(const vector<Pd>& h, Pd p) {  // h ccw từ hull()
 
 **Mục đích:** Cặp điểm gần nhất trong tập n điểm — $O(n \log n)$ thay vì $O(n^2)$.
 
-**Ý tưởng / Observation:**
-- Sort theo x, giữ dãy đã xét trong `set` theo y; với mỗi điểm mới chỉ check $\le 6$ điểm trong ô $d \times 2d$.
-- Nhận ra: "khi $n \le 10^5$, tìm cặp distance nhỏ nhất" → sweep; "cặp > 0" → union-find với khoảng cách tăng dần.
-
 **Điều kiện sử dụng:**
 - `D = double`; tọa độ distinct (nếu trùng → distance 0 ngay). Set theo `(y, x)` pair.
+- Nhận ra: "khi $n \le 10^5$, tìm cặp distance nhỏ nhất" → sweep; "cặp > 0" → union-find với khoảng cách tăng dần.
 
 **Độ phức tạp:**
 - Time: $O(n \log n)$
@@ -327,6 +300,7 @@ bool inHull(const vector<Pd>& h, Pd p) {  // h ccw từ hull()
 
 ```cpp
 // id: closestpair
+// sort theo x, giữ dãy đã xét trong set theo y; với mỗi điểm mới chỉ check ≤ 6 điểm trong ô d×2d.
 pair<int, int> closestPair(const vector<Pd>& v) {  // trả (i, j) xa nhất? → GẦN nhất
     int n = sz(v);
     vector<int> ord(n);
@@ -356,13 +330,9 @@ pair<int, int> closestPair(const vector<Pd>& v) {  // trả (i, j) xa nhất? �
 
 **Mục đích:** Giao 2 hình tròn (`circleInter`), đường tròn ngoại tiếp tam giác (`circumCircle`), đường tròn nội tiếp — dựng hình tròn từ điều kiện.
 
-**Ý tưởng / Observation:**
-- `circumCircle`: giải hệ 2 phương trình tọa độ (tốt hơn đặt bằng tay) — bản code bên dưới dùng trực tiếp định thức.
-- `circleInter`: 2 tâm, khoảng cách `d`; $d > r_1 + r_2$ → không giao; $d < |r_1 - r_2|$ → chứa; $d = 0$ → trùng.
-- Bài "tìm hình tròn qua 3 điểm" / "bao 3 điểm" → circumCircle; "bao tất cả điểm" → Welzl / min enclosing circle.
-
 **Điều kiện sử dụng:**
 - `D = double` với epsilon; tam giác suy biến (thẳng hàng) → không có ngoại tiếp (check cross ≈ 0).
+- Bài "tìm hình tròn qua 3 điểm" / "bao 3 điểm" → circumCircle; "bao tất cả điểm" → Welzl / min enclosing circle.
 
 **Độ phức tạp:**
 - Time: $O(1)$
@@ -372,7 +342,8 @@ pair<int, int> closestPair(const vector<Pd>& v) {  // trả (i, j) xa nhất? �
 
 ```cpp
 // id: circle
-// đường tròn ngoại tiếp qua 3 điểm — nullopt nếu thẳng hàng
+// đường tròn ngoại tiếp qua 3 điểm — nullopt nếu thẳng hàng. Giải hệ 2 phương trình tọa độ bằng trực tiếp định thức.
+// giao 2 hình tròn: d > r1+r2 → không giao; d < |r1-r2| → chứa; d = 0 → trùng.
 optional<tuple<Pd, D>> circumCircle(Pd a, Pd b, Pd c) {
     D d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
     if (fabs(d) < 1e-12) return nullopt;
@@ -402,12 +373,8 @@ vector<Pd> circleInter(Pd c1, D r1, Pd c2, D r2) {
 
 **Mục đích:** Tìm đỉnh chiếu cực đại theo một phương (`extrVertex`) và giao đường thẳng vô hạn với convex hull — bài "cắt lồi bởi đường thẳng" $O(\log n)$.
 
-**Ý tưởng / Observation:**
-- `extrVertex`: projection lên phương dir dọc hull là unimodal — binary search trên dấu 2 cạnh kề, tie-break `ls/ms/cmp` xử lý đoạn bằng nhau (plateau) → $O(\log n)$.
-- `lineHull`: tìm 2 đỉnh cực đại 2 bên đường (`endA`, `endB`) → 2 binary search trên nửa chuỗi tìm cạnh cắt mỗi bên.
-- Nhận ra: nhiều đường cắt hull lặp lại → không quét $O(n)$ mỗi đường; kèm `extrVertex` cho rotating calipers/tangent.
-
 **Điều kiện sử dụng:**
+- Nhiều đường cắt hull lặp lại → không quét $O(n)$ mỗi đường; kèm `extrVertex` cho rotating calipers/tangent.
 - Hull ccw **không có 3 điểm thẳng hàng** (mục `hull` mặc định đã loại collinear).
 - So sánh KHÔNG epsilon (giống KACTL) → tọa độ nguyên (long double chứa chính xác $\le 2^{63}$); số thực mượt cẩn thận với trị ~0.
 
@@ -419,7 +386,9 @@ vector<Pd> circleInter(Pd c1, D r1, Pd c2, D r2) {
 
 ```cpp
 // id: linehull
-// KACTL LineHullIntersection — hull ccw, không 3 điểm thẳng hàng
+// KACTL LineHullIntersection — hull ccw, không 3 điểm thẳng hàng.
+// extrVertex: projection lên phương dir dọc hull là unimodal — binary search trên dấu 2 cạnh kề, tie-break ls/ms/cmp xử lý đoạn bằng nhau (plateau).
+// lineHull: tìm 2 đỉnh cực đại 2 bên đường (endA, endB) → 2 binary search trên nửa chuỗi tìm cạnh cắt mỗi bên.
 int sgnD(D x) { return (x > 0) - (x < 0); }
 // đỉnh có CHIẾU (projection) lớn nhất theo phương dir — O(log n)
 int extrVertex(const vector<Pd>& h, Pd dir) {
@@ -471,13 +440,9 @@ array<int, 2> lineHull(Pd a, Pd b, const vector<Pd>& poly) {
 
 **Mục đích:** Range search (đếm điểm trong rectangle/trên đường tròn) và nearest neighbor trên 2D — truy vấn nhanh hơn quét hết khi n lớn, ít query.
 
-**Ý tưởng / Observation:**
-- Chia đôi theo dimension `d = depth % 2`, median → cân bằng; `calcBnd` tính bbox subtree.
-- Range search: prune nếu bbox không giao vùng truy vấn (`mayOverlap`); NN: prune nếu khoảng cách đến bbox ≥ best.
-- Nhận ra: "n = 10^5, Q = 10^5 truy vấn range trên plane" → KD (hoặc grid/sweep nếu rectangle-only).
-
 **Điều kiện sử dụng:**
 - Point array + node index (không pointer) — build 1 lần, query nhiều. Nên shuffle input trước khi build (tránh worst-case).
+- Nhận ra: "n = 10^5, Q = 10^5 truy vấn range trên plane" → KD (hoặc grid/sweep nếu rectangle-only).
 
 **Độ phức tạp:**
 - Time: $O(\log n)$ kỳ vọng mỗi query (thực tế ~ $\sqrt{n}$), tệ nhất $O(n)$
@@ -487,6 +452,7 @@ array<int, 2> lineHull(Pd a, Pd b, const vector<Pd>& poly) {
 
 ```cpp
 // id: kdtree
+// chia đôi theo dimension d = depth % 2, median → cân bằng. Range search: prune nếu bbox không giao vùng truy vấn; NN: prune nếu khoảng cách đến bbox ≥ best.
 struct KDTree {
     struct Node {
         int left = 0, right = 0, axis = 0, id = -1;  // id = index gốc trong pts
@@ -565,11 +531,6 @@ struct KDTree {
 ## Công thức hình tam giác
 
 **Mục đích:** Tra cứu nhanh khi tính diện tích, góc, bán kính đường tròn nội/ngoại tiếp.
-
-**Ý tưởng / Observation:**
-- Có 3 cạnh → Heron: $s = \frac{a+b+c}{2}$, $A = \sqrt{s(s-a)(s-b)(s-c)}$ — kiểm tra bất đẳng thức tam giác trước.
-- Có 2 cạnh + góc xen giữa → $A = \frac{ab\sin(C)}{2}$; có góc thì dùng law of sines/cosines.
-- $r = \frac{A}{s}$ (nội tiếp), $R = \frac{abc}{4A}$ (ngoại tiếp) — dùng khi bài liên quan đường tròn.
 
 **Điều kiện sử dụng:**
 - Tọa độ `double`; tam giác suy biến (thẳng hàng) → check $A \approx 0$.
